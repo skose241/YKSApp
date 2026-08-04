@@ -1,0 +1,204 @@
+CREATE TABLE GirisSoru(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	soruMetni NVARCHAR(255) NOT NULL
+	);
+
+GO
+
+CREATE TABLE Avatar(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kod NVARCHAR(100) NOT NULL,
+	kategori NVARCHAR(100),
+	aciklama NVARCHAR(255)
+	);
+
+GO
+
+CREATE TABLE SinavTuru(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	ad NVARCHAR(3) NOT NULL
+	);
+
+GO
+
+CREATE TABLE ALAN(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	ad NVARCHAR(20) NOT NULL,
+	sinavTuruID INT NOT NULL,
+	FOREIGN KEY (sinavTuruID) REFERENCES SinavTuru(id)
+	);
+
+GO
+
+CREATE TABLE Ders(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	ad NVARCHAR(100) NOT NULL,
+	alanID INT NOT NULL,
+	FOREIGN KEY (alanID) REFERENCES Alan(id)
+	);
+
+GO
+
+CREATE TABLE Kullanici(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	rol INT DEFAULT 1,
+	ad NVARCHAR(15) UNIQUE NOT NULL,
+	avatarID INT,
+	sifre NVARCHAR(255) NOT NULL,
+	gizliSoruID INT NOT NULL,
+	gizliCevap NVARCHAR(255) NOT NULL,
+	xp INT DEFAULT 0,
+	kayitTarihi DATETIME DEFAULT GETDATE(),
+	sonGirisTarihi DATETIME,
+	aktiflik BIT DEFAULT 1,
+	FOREIGN KEY (avatarID) REFERENCES Avatar(id),
+	FOREIGN KEY (gizliSoruID) REFERENCES GirisSoru(id)
+	);
+
+GO
+
+CREATE TABLE Oturum(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kullaniciID INT NOT NULL,
+	sessionToken NVARCHAR(255) NOT NULL,
+	girisTarihi DATETIME DEFAULT GETDATE(),
+	sonGoruldu DATETIME,
+	aktiflik BIT DEFAULT 1,
+	FOREIGN KEY (kullaniciID) REFERENCES Kullanici(id)
+	);
+
+GO
+
+CREATE TABLE Soru(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	dersID INT NOT NULL,
+	soranID INT NOT NULL,
+	dogruCevap CHAR(1) NOT NULL,
+	soruResmi NVARCHAR(255) NOT NULL,
+	aktiflik BIT DEFAULT 1,
+	goruntulenmeSayisi INT DEFAULT 0,
+	eklenmeTarihi DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (dersID) REFERENCES Ders(id),
+	FOREIGN KEY(soranID) REFERENCES Kullanici(id)
+	);
+
+GO
+
+CREATE TABLE Cevap(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	soruID INT NOT NULL,
+	cozenID INT NOT NULL,
+	kullaniciCevabi CHAR(1),
+	cozumMetni NVARCHAR(MAX),
+	cozumResmi NVARCHAR(255),
+	onay INT DEFAULT 2,
+	eklenmeTarihi DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (soruID) REFERENCES Soru(id),
+	FOREIGN KEY (cozenID) REFERENCES Kullanici(id)
+	);
+
+GO
+
+CREATE TABLE Yorum(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	cevapID INT NOT NULL,
+	yazanID INT NOT NULL,
+	metin NVARCHAR(MAX) NOT NULL,
+	ustYorumID INT DEFAULT NULL,
+	aktiflik BIT DEFAULT 1,
+	eklenmeTarihi DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (cevapID) REFERENCES Cevap(id),
+	FOREIGN KEY (yazanID) REFERENCES Kullanici(id),
+	FOREIGN KEY (ustYorumID) REFERENCES Yorum(id)
+	);
+
+GO
+
+CREATE TABLE Begeni(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kullaniciID INT NOT NULL,
+	hedefTip NVARCHAR(20) NOT NULL,
+	hedefID INT NOT NULL,
+	tarih DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (kullaniciID) REFERENCES Kullanici(id)
+	);
+
+GO
+
+CREATE TABLE Favori(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kullaniciID INT NOT NULL,
+	soruID INT NOT NULL,
+	eklenmeTarihi DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (kullaniciID) REFERENCES Kullanici(id),
+	FOREIGN KEY (soruID) REFERENCES Soru(id)
+	);
+
+GO
+
+CREATE TABLE Puan(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kullaniciID INT NOT NULL,
+	islemTipi NVARCHAR(50) NOT NULL,
+	puanDegeri INT NOT NULL,
+	referansID INT,
+	referansTip NVARCHAR(20),
+	eklenmeTarihi DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (kullaniciID) REFERENCES Kullanici(id)
+	);
+
+GO
+
+CREATE TABLE AI(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kullaniciID INT,
+	soruID INT,
+	islemTipi NVARCHAR(50),
+	girdi NVARCHAR(MAX),
+	cikti NVARCHAR(MAX),
+	model NVARCHAR(50),
+	eklenmeTarihi DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (kullaniciID) REFERENCES Kullanici(id),
+	FOREIGN KEY (soruID) REFERENCES Soru(id)
+	);
+
+GO
+
+CREATE TABLE GunlukSoru(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	soruID INT NOT NULL,
+	tarih DATE NOT NULL,
+	alanID INT NOT NULL,
+	olusturmaTipi NVARCHAR(20),
+	goruntulenme INT DEFAULT 0,
+	FOREIGN KEY (soruID) REFERENCES Soru(id),
+	FOREIGN KEY (alanID) REFERENCES Alan(id)
+	);
+
+GO
+
+CREATE TABLE Bildirim(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	kullaniciID INT NOT NULL,
+	islemTipi NVARCHAR(20),
+	mesaj NVARCHAR(500),
+	goruldu BIT DEFAULT 0,
+	hedefURL NVARCHAR(255),
+	tarih DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (kullaniciID) REFERENCES Kullanici(id)
+	);
+
+GO
+
+CREATE TABLE Sikayet(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	sikayetciID INT NOT NULL,
+	hedefTip NVARCHAR(20),
+	hedefID INT NOT NULL,
+	sebep NVARCHAR(255),
+	durum INT DEFAULT 0,
+	tarih DATETIME DEFAULT GETDATE(),
+	FOREIGN KEY (sikayetciID) REFERENCES Kullanici(id)
+	);
+
+GO
