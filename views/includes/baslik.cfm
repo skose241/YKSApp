@@ -73,17 +73,10 @@
 
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="##" role="button" data-bs-toggle="dropdown">
-                                    <cfquery name="qAvatar" datasource="DSN">
-                                        SELECT a.kod
-                                        FROM Avatar a 
-                                        INNER JOIN Kullanici k ON k.avatarID=a.id
-                                        WHERE k.id=<cfqueryparam value="#SESSION.kullaniciID#" cfsqltype="cf_sql_integer">
-                                    </cfquery>
-
-                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=#qAvatar.kod#" width="32" height="32" class="rounded-circle bg-light">#SESSION.kullaniciAd#
+                                    <img src="#application.avatarURL##SESSION.kullaniciAd#" class="rounded-circle" width="32" height="32">
                                 </a>
 
-                                <ul class="dropdown-menu dropdown-mwnu-end">
+                                <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
                                         <a class="dropdown-item" href="/views/profil/profilim.cfm">
                                             <i class="bi bi-person"></i>Profilim 

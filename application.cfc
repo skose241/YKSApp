@@ -19,7 +19,7 @@
         <cfif NOT isDefined("SESSION.kullaniciID")>
             <cfif isDefined("cookie.beniHatirla") AND cookie.beniHatirla NEQ "">
                 <cfquery name="qOturum" datasource="DSN">
-                    SELECT k.id,k.ad,k.rol,k.avatarID,k.xp
+                    SELECT k.id,k.ad,k.rol,k.xp
                     FROM Oturum o
                     INNER JOIN Kullanici k ON k.id=o.kullaniciID
                     WHERE o.sessionToken =<cfqueryparam value="#cookie.beniHatirla#" cfsqltype="varchar">
@@ -31,7 +31,6 @@
                     <cfset SESSION.kullaniciID=qOturum.id>
                     <cfset SESSION.kullaniciAd=qOturum.ad>
                     <cfset SESSION.rol=qOturum.rol>
-                    <cfset SESSION.avatarID=qOturum.avatarID>
                     <cfset SESSION.xp=qOturum.xp>
 
                     <cfquery datasource="DSN">

@@ -1,15 +1,6 @@
-CREATE TABLE GirisSoru(
+﻿CREATE TABLE GirisSoru(
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	soruMetni NVARCHAR(255) NOT NULL
-	);
-
-GO
-
-CREATE TABLE Avatar(
-	id INT IDENTITY(1,1) PRIMARY KEY,
-	kod NVARCHAR(100) NOT NULL,
-	kategori NVARCHAR(100),
-	aciklama NVARCHAR(255)
 	);
 
 GO
@@ -21,7 +12,7 @@ CREATE TABLE SinavTuru(
 
 GO
 
-CREATE TABLE ALAN(
+CREATE TABLE Alan(
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	ad NVARCHAR(20) NOT NULL,
 	sinavTuruID INT NOT NULL,
@@ -43,7 +34,6 @@ CREATE TABLE Kullanici(
 	id INT IDENTITY(1,1) PRIMARY KEY,
 	rol INT DEFAULT 1,
 	ad NVARCHAR(15) UNIQUE NOT NULL,
-	avatarID INT,
 	sifre NVARCHAR(255) NOT NULL,
 	gizliSoruID INT NOT NULL,
 	gizliCevap NVARCHAR(255) NOT NULL,
@@ -51,7 +41,6 @@ CREATE TABLE Kullanici(
 	kayitTarihi DATETIME DEFAULT GETDATE(),
 	sonGirisTarihi DATETIME,
 	aktiflik BIT DEFAULT 1,
-	FOREIGN KEY (avatarID) REFERENCES Avatar(id),
 	FOREIGN KEY (gizliSoruID) REFERENCES GirisSoru(id)
 	);
 
@@ -202,3 +191,22 @@ CREATE TABLE Sikayet(
 	);
 
 GO
+
+INSERT INTO GirisSoru(soruMetni) VALUES
+('En sevdiğiniz öğretmeninizin adı nedir?'),
+('En sevdiğiniz hayvan hangisidir??'),
+('En sevdiğiniz renk nedir?'),
+('En güzel yapabildiğiniz yemek hangisidir?'),
+('Gezmeyi en çok istediğiniz şehir hangisidir?');
+
+GO
+
+INSERT INTO SinavTuru(ad) VALUES('TYT'),('AYT');
+
+GO
+
+INSERT INTO Alan(ad,sinavTuruID) VALUES
+('Sayısal',2),
+('Sözel',2),
+('Eşit Ağırlık',2),
+('TYT',1);

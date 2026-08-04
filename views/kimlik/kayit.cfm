@@ -10,13 +10,7 @@
     ORDER BY id
 </cfquery>
 
-<cfquery name="qAvatar" datasource="DSN">
-    SELECT id,kod,kategori,aciklama
-    FROM Avatar 
-    ORDER BY kategori,id
-</cfquery>
-
-<cfquery name="alan" datasource="DSN">
+<cfquery name="qAlan" datasource="DSN">
     SELECT id,ad
     FROM Alan 
     ORDER BY id
@@ -31,7 +25,6 @@
     <cfset sifreTekrar=trim(form.sifreTekrar)>
     <cfset gizliSoruID=trim(form.gizliSoruID)>
     <cfset gizliCevap=lCase(trim(form.gizliCevap))>
-    <cfset avatarID=trim(form.avatarID)>
     <cfset alanID=trim(form.alanID)>
 
     <cfif kullaniciAd EQ "" OR sifre EQ "" OR sifreTekrar EQ "" OR gizliCevap EQ "">
@@ -55,11 +48,10 @@
             <cfset sifreHash=hash(sifre,"SHA-256")>
 
             <cfquery datasource="DSN">
-                INSERT INTO Kullanici(rol,ad,avatarID,sifre,gizliSoruID,gizliCevap,xp,kayitTarihi,aktiflik)
+                INSERT INTO Kullanici(rol,ad,sifre,gizliSoruID,gizliCevap,xp,kayitTarihi,aktiflik)
                 VALUES(
                     1,
                     <cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">,
-                    <cfqueryparam value="#avatarID#" cfsqltype="cf_sql_integer">,
                     <cfqueryparam value="#sifreHash#" cfsqltype="cf_sql_nvarchar">,
                     <cfqueryparam value="#gizliSoruID#" cfsqltype="cf_sql_integer">,
                     <cfqueryparam value="#gizliCevap#" cfsqltype="cf_sql_nvarchar">,
@@ -137,22 +129,6 @@
                                     <option value="#id#">#ad#</option>
                                 </cfoutput>
                             </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Avatarınız:</label>
-                            <div class="d-flex flex-wrap gap-2">
-                                <cfoutput query="qAvatar">
-                                    <div class="form-check">
-                                        <input class="form-check-input d-none" type="radio" name="avatarID" id="avatar_#id#" value="#id#" required>
-                                        <label class="form-check-label" for="avatar_#id#">
-                                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=#kod#" width="60" height="60" class="rounded-circle border border-2 avatar-sec" title="#aciklama#">
-                                        </label>
-                                    </div>
-                                </cfoutput>
-                            </div>
-
-                            <small class="text-muted">Bir avatar seçiniz.</small>
                         </div>
 
                         <div class="d-grid">
