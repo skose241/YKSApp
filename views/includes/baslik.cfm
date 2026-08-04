@@ -1,1 +1,124 @@
-﻿
+﻿<!DOCTYPE HTML>
+<html lang="UTF-8">
+    <head> 
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width,initial-scale=1.0">
+       
+       <title>#application.sitAdi#</title>
+
+       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+       <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+       <link href="/assets/css/style.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="/index.cfm">
+                    <i class="bi bi-mortarboard-fill"></i>YKS Platform
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navMenu">
+                    <cfif NOT isDefined("SESSION.kullaniciID")>
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/views/kimlik/giris.cfm">
+                                    <i class="bi bi-box-arrow-in-right"></i>Giriş Yap
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="/views/kimlik/kayit.cfm">
+                                    <i class="bi bi-person-plus"></i>Kayıt Ol
+                                </a>
+                            </li>
+                        </ul>
+                    <cfelse>
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/anaSayfa.cfm">
+                                    <i class="bi bi-house"></i>Ana Sayfa
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" href="/views/soru/soruEkle.cfm">
+                                    <i class="bi bi-plus-circle"></i>Soru Ekle
+                                </a>
+                            </li>
+                        </ul>
+
+                        <ul class="navbar-nav ms-auto align-items-center">
+                            <li class="nav-item me-2">
+                                <a class="nav-link position-relative" href="/views/bildirim/bildirimler.cfm">
+                                    <i class="bi bi-bell"></i>
+                                    <cfquery name="qBildirim" datasource="DSN">
+                                        SELECT COUNT(*) AS adet
+                                        FROM Bildirim 
+                                        WHERE kullaniciID=<cfqueryparam value="#SESSION.kullaniciID#" cfsqltype="cf_sql_integer">
+                                        AND goruldu=0 
+                                    </cfquery>
+
+                                    <cfif qBildirim.adet GT 0>
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            #qBildirim.adet#
+                                        </span>
+                                    </cfif>
+                                </a>
+                            </li>
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="##" role="button" data-bs-toggle="dropdown">
+                                    <cfquery name="qAvatar" datasource="DSN">
+                                        SELECT a.kod
+                                        FROM Avatar a 
+                                        INNER JOIN Kullanici k ON k.avatarID=a.id
+                                        WHERE k.id=<cfqueryparam value="#SESSION.kullaniciID#" cfsqltype="cf_sql_integer">
+                                    </cfquery>
+
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=#qAvatar.kod#" width="32" height="32" class="rounded-circle bg-light">#SESSION.kullaniciAd#
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-mwnu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="/views/profil/profilim.cfm">
+                                            <i class="bi bi-person"></i>Profilim 
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="/views/profil/liderlikTablosu.cfm">
+                                            <i class="bi bi-trophy"></i>Liderlik Tablosu
+                                        </a>
+                                    </li>
+
+                                    <cfif SESSION.rol EQ 2 OR SESSION.rol EQ 3>
+                                        <li><hr class="dropdown-divider"></li>
+
+                                        <li>
+                                            <a class="dropdown-item text-warning" href="/views/yonetim/panel.cfm">
+                                                <i class="bi bi-shield"></i>Yönetim Paneli
+                                            </a>
+                                        </li>
+                                    </cfif>
+
+                                    <li><hr class="dropdown-divider"></li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="/views/kimlik/cikis.cfm">
+                                            <i class="bi bi-box-arrow-right"></i>Çıkış Yap
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </cfif>
+                </div>
+            </div>
+        </nav>
+    </body>
+</html>

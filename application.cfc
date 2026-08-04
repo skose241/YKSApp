@@ -13,7 +13,7 @@
         <cfreturn true>
     </cffunction>
 
-    <cffunction name="onRequesStart" returntype="boolean" output="false">
+    <cffunction name="onRequestStart" returntype="boolean" output="false">
         <cfargument name="targetPage" type="string" required="true">
         
         <cfif NOT isDefined("SESSION.kullaniciID")>
@@ -36,10 +36,25 @@
 
                     <cfquery datasource="DSN">
                         UPDATE Oturum
-                        SET sonGoruldu
+                        SET sonGoruldu=<cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">
+                        WHERE sessionToken=<cfqueryparam value="#cookie.beniHatirla#" cfsqltype="varchar">
                     </cfquery>
                 </cfif>
             </cfif>
         </cfif>
+
+        <cfreturn true>
+    </cffunction>
+
+    <cffunction name="onSessionEnd" returntype="void" output="false">
+        <cfargument name="sessionScope" required="true">
+        <cfargument name="appScope" required="false">
+    </cffunction>
+
+    <cffunction name="onError" returntype="void" output="false">
+        <cfargument name="exception" required="true">
+        <cfargument name="eventName" type="string" required="true">
+
+        <cflog file="yksHata" text="#arguments.exception.message#">
     </cffunction>
 </cfcomponent>
