@@ -1,7 +1,7 @@
-﻿<cfinclude template="/views/includes/baslik.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfif isDefined("SESSION.kullaniciID")>
-    <cflocation url="/anaSayfa.cfm" addtoken="false">
+    <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfparam name="hata" default="">
@@ -20,7 +20,7 @@
             SELECT k.id,k.ad,g.soruMetni,k.gizliSoruID
             FROM Kullanici k 
             INNER JOIN GirisSoru g ON g.id=k.gizliSoruID
-            WHERE k.ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">
+            WHERE k.ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
             AND aktiflik=1
         </cfquery>
 
@@ -45,7 +45,7 @@
             SELECT g.soruMetni
             FROM Kullanici k 
             INNER JOIN GirisSoru g ON g.id=k.gizliSoruID
-            WHERE k.ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">
+            WHERE k.ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
         </cfquery>
 
         <cfset gizliSoru=qSoru.soruMetni>
@@ -53,8 +53,8 @@
         <cfquery name="qKontrol" datasource="DSN">
             SELECT id 
             FROM Kullanici 
-            WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">
-            AND gizliCevap=<cfqueryparam value="#gizliCevap#" cfsqltype="cf_sql_nvarchar">
+            WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
+            AND gizliCevap=<cfqueryparam value="#gizliCevap#" cfsqltype="cf_sql_varchar">
             AND aktiflik=1
         </cfquery>
 
@@ -68,7 +68,7 @@
                 SELECT g.soruMetni
                 FROM Kullanici k 
                 INNER JOIN GirisSoru g ON g.id=k.gizliSoruID
-                WHERE k.ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">
+                WHERE k.ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
             </cfquery>
 
             <cfset gizliSoru=qSoru.soruMetni>
@@ -94,8 +94,8 @@
 
         <cfquery datasource="DSN">
             UPDATE Kullanici 
-            SET sifre=<cfqueryparam value="#sifreHash#" cfsqltype="cf_sql_nvarchar">
-            WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">
+            SET sifre=<cfqueryparam value="#sifreHash#" cfsqltype="cf_sql_varchar">
+            WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
         </cfquery>
 
         <cfquery datasource="DSN">
@@ -103,7 +103,7 @@
             SET aktiflik=0
             WHERE kullaniciID=(
                 SELECT id FROM Kullanici 
-                WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_nvarchar">
+                WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
             )
         </cfquery>
 
@@ -112,103 +112,105 @@
     </cfif>
 </cfif>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-header bg-dark text-white text-center">
-                    <h4><i class="bi bi-key"></i>Şifre Sıfırlama</h4>
-                </div>
-
-                <div class="card-body">
-                    <cfif hata NEQ "">
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-circle"></i>#hata#
-                        </div>
-                    </cfif>
-
-                    <cfif basari NEQ "">
-                        <div class="alert alert-success">
-                            <i class="bi bi-check-circle"></i>#basari#
-                            <a href="/views/kimlik/giris.cfm">Giriş Yap</a>
-                        </div>
-                    </cfif>
-
-                    <div class="d-flex justify-content-center mb-4 gap-2">
-                        <span class="badge #adim EQ 1 ? 'bg-dark':'bg-secondary'#">Kullanıcı Adı:</span>
-                        <span class="badge #adim EQ 2 ? 'bg-dark':'bg-secondary'#">Gizli Soru:</span>
-                        <span class="badge #adim EQ 3 ? 'bg-dark':'bg-secondary'#">Yeni Şifre:</span>
+<cfoutput>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white text-center">
+                        <h4><i class="bi bi-key"></i>Şifre Sıfırlama</h4>
                     </div>
 
-                    <cfif adim EQ 1 AND basari EQ "">
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Kullanıcı Adınız:</label>
-                                <input type="text" name="kullaniciAd" class="form-control" maxlength="15" required>
+                    <div class="card-body">
+                        <cfif hata NEQ "">
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-circle"></i>#hata#
                             </div>
+                        </cfif>
 
-                            <div class="d-grid">
-                                <button type="submit" name="adim1" value="1" class="btn btn-dark">
-                                    <i class="bi bi-arrow-right"></i>Devam Et
-                                </button>
+                        <cfif basari NEQ "">
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i>#basari#
+                                <a href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a>
                             </div>
-                        </form>
-                    </cfif>
+                        </cfif>
 
-                    <cfif adim EQ 2>
-                        <form method="POST">
-                            <input type="hidden" name="kullaniciAd" value="#kullaniciAd#">
-                            <div class="mb-3">
-                                <label class="form-label">Gizli Soru:</label>
-                                <p class="form-control-plaintext fw-bold">#gizliSoru#</p>
-                            </div>
+                        <div class="d-flex justify-content-center mb-4 gap-2">
+                            <span class="badge #adim EQ 1 ? 'bg-dark':'bg-secondary'#">Kullanıcı Adı:</span>
+                            <span class="badge #adim EQ 2 ? 'bg-dark':'bg-secondary'#">Gizli Soru:</span>
+                            <span class="badge #adim EQ 3 ? 'bg-dark':'bg-secondary'#">Yeni Şifre:</span>
+                        </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Cevabınız:</label>
-                                <input type="text" name="gizliCevap" class="form-control" required>
-                                <small class="text-muted">Büyük/Küçük harf sıkıntısı yaşanmayacaktır.</small>
-                            </div>
+                        <cfif adim EQ 1 AND basari EQ "">
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label">Kullanıcı Adınız:</label>
+                                    <input type="text" name="kullaniciAd" class="form-control" maxlength="15" required>
+                                </div>
 
-                            <div class="d-grid">
-                                <button type="submit" name="adim2" value="1" class="btn btn-dark">
-                                    <i class="bi bi-arrow-right"></i>Devam Et
-                                </button>
-                            </div>
-                        </form>
-                    </cfif>
+                                <div class="d-grid">
+                                    <button type="submit" name="adim1" value="1" class="btn btn-dark">
+                                        <i class="bi bi-arrow-right"></i>Devam Et
+                                    </button>
+                                </div>
+                            </form>
+                        </cfif>
 
-                    <cfif adim EQ 3>
-                        <form method="POST">
-                            <input type="hidden" name="kullaniciAd" value="#kullaniciAd#">
-                            <div class="mb-3">
-                                <label class="form-label">Yeni Şifre:</label>
-                                <input type="password" name="yeniSifre" class="form-control" minlength="6" required>
-                            </div>
+                        <cfif adim EQ 2>
+                            <form method="POST">
+                                <input type="hidden" name="kullaniciAd" value="#kullaniciAd#">
+                                <div class="mb-3">
+                                    <label class="form-label">Gizli Soru:</label>
+                                    <p class="form-control-plaintext fw-bold">#gizliSoru#</p>
+                                </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Yeni Şifre Tekrarı:</label>
-                                <input type="password" name="yeniSifreTekrar" class="form-control" minlength="6" required>
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Cevabınız:</label>
+                                    <input type="text" name="gizliCevap" class="form-control" required>
+                                    <small class="text-muted">Büyük/Küçük harf sıkıntısı yaşanmayacaktır.</small>
+                                </div>
 
-                            <div class="d-grid">
-                                <button type="submit" name="adim3" value="1" class="btn btn-dark">
-                                    <i class="bi bi-check-lg"></i>Şifremi Güncelle
-                                </button>
-                            </div>
-                        </form>
-                    </cfif>
+                                <div class="d-grid">
+                                    <button type="submit" name="adim2" value="1" class="btn btn-dark">
+                                        <i class="bi bi-arrow-right"></i>Devam Et
+                                    </button>
+                                </div>
+                            </form>
+                        </cfif>
 
-                    <hr>
+                        <cfif adim EQ 3>
+                            <form method="POST">
+                                <input type="hidden" name="kullaniciAd" value="#kullaniciAd#">
+                                <div class="mb-3">
+                                    <label class="form-label">Yeni Şifre:</label>
+                                    <input type="password" name="yeniSifre" class="form-control" minlength="6" required>
+                                </div>
 
-                    <div class="text-center">
-                        <small>
-                            <a href="/views/kimlik/giris.cfm">Giriş Yap</a>
-                        </small>
+                                <div class="mb-3">
+                                    <label class="form-label">Yeni Şifre Tekrarı:</label>
+                                    <input type="password" name="yeniSifreTekrar" class="form-control" minlength="6" required>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" name="adim3" value="1" class="btn btn-dark">
+                                        <i class="bi bi-check-lg"></i>Şifremi Güncelle
+                                    </button>
+                                </div>
+                            </form>
+                        </cfif>
+
+                        <hr>
+
+                        <div class="text-center">
+                            <small>
+                                <a href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a>
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</cfoutput>
 
-<cfinclude template="/views/includes/altBilgi.cfm">
+<cfinclude template="/YKSSite/views/includes/altBilgi.cfm">

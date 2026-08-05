@@ -11,4 +11,4 @@
     <cfset structClear(SESSION)>
 </cfif>
 
-<cflocation url="/views/kimlik/giris.cfm" addtoken="false">
+<cflocation url="/YKSSite/views/kimlik/giris.cfm" addtoken="false">

@@ -4,17 +4,17 @@
        <meta charset="UTF-8">
        <meta name="viewport" content="width=device-width,initial-scale=1.0">
        
-       <title>#application.sitAdi#</title>
+       <title>YKS Soru&Çözüm Platformu</title>
 
        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-       <link href="/assets/css/style.css" rel="stylesheet">
+       <link href="/YKSSite/assets/css/style.css" rel="stylesheet">
     </head>
 
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container">
-                <a class="navbar-brand fw-bold" href="/index.cfm">
+                <a class="navbar-brand fw-bold" href="/YKSSite/index.cfm">
                     <i class="bi bi-mortarboard-fill"></i>YKS Platform
                 </a>
 
@@ -26,13 +26,13 @@
                     <cfif NOT isDefined("SESSION.kullaniciID")>
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
-                                <a class="nav-link" href="/views/kimlik/giris.cfm">
+                                <a class="nav-link" href="/YKSSite/views/kimlik/giris.cfm">
                                     <i class="bi bi-box-arrow-in-right"></i>Giriş Yap
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="/views/kimlik/kayit.cfm">
+                                <a class="nav-link" href="/YKSSite/views/kimlik/kayit.cfm">
                                     <i class="bi bi-person-plus"></i>Kayıt Ol
                                 </a>
                             </li>
@@ -40,13 +40,13 @@
                     <cfelse>
                         <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" href="/anaSayfa.cfm">
+                                <a class="nav-link" href="/YKSSite/anaSayfa.cfm">
                                     <i class="bi bi-house"></i>Ana Sayfa
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" href="/views/soru/soruEkle.cfm">
+                                <a class="nav-link" href="/YKSSite/views/soru/soruEkle.cfm">
                                     <i class="bi bi-plus-circle"></i>Soru Ekle
                                 </a>
                             </li>
@@ -54,12 +54,12 @@
 
                         <ul class="navbar-nav ms-auto align-items-center">
                             <li class="nav-item me-2">
-                                <a class="nav-link position-relative" href="/views/bildirim/bildirimler.cfm">
+                                <a class="nav-link position-relative" href="/YKSSite/views/bildirim/bildirimler.cfm">
                                     <i class="bi bi-bell"></i>
                                     <cfquery name="qBildirim" datasource="DSN">
                                         SELECT COUNT(*) AS adet
                                         FROM Bildirim 
-                                        WHERE kullaniciID=<cfqueryparam value="#SESSION.kullaniciID#" cfsqltype="cf_sql_integer">
+                                        WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
                                         AND goruldu=0 
                                     </cfquery>
 
@@ -78,13 +78,13 @@
 
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
-                                        <a class="dropdown-item" href="/views/profil/profilim.cfm">
+                                        <a class="dropdown-item" href="/YKSSite/views/profil/profilim.cfm">
                                             <i class="bi bi-person"></i>Profilim 
                                         </a>
                                     </li>
 
                                     <li>
-                                        <a class="dropdown-item" href="/views/profil/liderlikTablosu.cfm">
+                                        <a class="dropdown-item" href="/YKSSite/views/profil/liderlikTablosu.cfm">
                                             <i class="bi bi-trophy"></i>Liderlik Tablosu
                                         </a>
                                     </li>
@@ -93,7 +93,7 @@
                                         <li><hr class="dropdown-divider"></li>
 
                                         <li>
-                                            <a class="dropdown-item text-warning" href="/views/yonetim/panel.cfm">
+                                            <a class="dropdown-item text-warning" href="/YKSSite/views/yonetim/panel.cfm">
                                                 <i class="bi bi-shield"></i>Yönetim Paneli
                                             </a>
                                         </li>
@@ -102,7 +102,7 @@
                                     <li><hr class="dropdown-divider"></li>
 
                                     <li>
-                                        <a class="dropdown-item text-danger" href="/views/kimlik/cikis.cfm">
+                                        <a class="dropdown-item text-danger" href="/YKSSite/views/kimlik/cikis.cfm">
                                             <i class="bi bi-box-arrow-right"></i>Çıkış Yap
                                         </a>
                                     </li>

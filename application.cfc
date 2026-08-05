@@ -8,7 +8,7 @@
 
     <cffunction name="onApplicationStart" returntype="boolean" output="false">
         <cfset application.DSN="DSN">
-        <cfset application.sitAdi="YKS Platform">
+        <cfset application.avatarURL="https://ui-avatars.com/api/?background=random&color=fff&size=64&bold=true&name=">
 
         <cfreturn true>
     </cffunction>
@@ -22,7 +22,7 @@
                     SELECT k.id,k.ad,k.rol,k.xp
                     FROM Oturum o
                     INNER JOIN Kullanici k ON k.id=o.kullaniciID
-                    WHERE o.sessionToken =<cfqueryparam value="#cookie.beniHatirla#" cfsqltype="varchar">
+                    WHERE o.sessionToken =<cfqueryparam value="#cookie.beniHatirla#" cfsqltype="cf_sql_varchar">
                     AND o.aktiflik=1
                     AND k.aktiflik=1
                 </cfquery>
@@ -49,11 +49,15 @@
         <cfargument name="sessionScope" required="true">
         <cfargument name="appScope" required="false">
     </cffunction>
-
+<!---
     <cffunction name="onError" returntype="void" output="false">
         <cfargument name="exception" required="true">
         <cfargument name="eventName" type="string" required="true">
 
         <cflog file="yksHata" text="#arguments.exception.message#">
+
+        <cfdump var="#arguments.exception#">
+        <cfabort>
     </cffunction>
+--->
 </cfcomponent>
