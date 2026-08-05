@@ -210,3 +210,37 @@ INSERT INTO Alan(ad,sinavTuruID) VALUES
 ('Sözel',2),
 ('Eşit Ağırlık',2),
 ('TYT',1);
+
+GO
+
+INSERT INTO Ders(ad,alanID) VALUES
+('AYT Matematik',1),
+('AYT Geometri',1),
+('AYT Fizik',1),
+('AYT Kimya',1),
+('AYT Biyoloji',1),
+
+('AYT Türk Dili ve Edebiyatı',2),
+('AYT Tarih-1',2),
+('AYT Coğrafya-1',2),
+('AYT Tarih-2',2),
+('AYT Coğrafya-2',2),
+('AYT Felsefe Grubu',2),
+('AYT Din Kültürü',2),
+
+('AYT Matematik',3),
+('AYT Geometri',3),
+('AYT Edebiyat (EA)',3),
+('AYT Tarih-1 (EA)',3),
+('AYT Coğrafya-1 (EA)',3),
+
+('TYT Türkçe',4),
+('TYT Tarih',4),
+('TYT Coğrafya',4),
+('TYT Felsefe',4),
+('TYT Din Kültürü',4),
+('TYT Matematik',4),
+('TYT Geometri',4),
+('TYT Fizik',4),
+('TYT Kimya',4),
+('TYT Biyoloji',4);
