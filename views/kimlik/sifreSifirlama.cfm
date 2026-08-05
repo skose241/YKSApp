@@ -1,4 +1,4 @@
-﻿<cfinclude template="/views/includes.baslik.cfm">
+﻿<cfinclude template="/views/includes/baslik.cfm">
 
 <cfif isDefined("SESSION.kullaniciID")>
     <cflocation url="/anaSayfa.cfm" addtoken="false">
