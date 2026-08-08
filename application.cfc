@@ -49,7 +49,7 @@
         <cfargument name="sessionScope" required="true">
         <cfargument name="appScope" required="false">
     </cffunction>
-<!---
+
     <cffunction name="onError" returntype="void" output="false">
         <cfargument name="exception" required="true">
         <cfargument name="eventName" type="string" required="true">
@@ -59,5 +59,4 @@
         <cfdump var="#arguments.exception#">
         <cfabort>
     </cffunction>
---->
 </cfcomponent>
