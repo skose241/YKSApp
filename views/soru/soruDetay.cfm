@@ -1,5 +1,5 @@
-﻿<cfinclude template="/YKSSite/includes/baslik.cfm">
-<cfinclude template="/YKSSite/includes/oturumKontrol.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
+<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
 
 <cfif NOT structKeyExists(url,"id") OR NOT isNumeric(url.id)>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
@@ -18,7 +18,7 @@
     AND s.aktiflik=1
 </cfquery>
 
-<cfif qSoru RecordCount EQ 0>
+<cfif qSoru.recordCount EQ 0>
     <cflocation url="/YKSSite/anaSayfa.cfm">
 </cfif>
 
@@ -55,7 +55,7 @@
 </cfquery>
 
 <script>
-    function yorumlariGöster(cevapID){
+    function yorumlariGoster(cevapID){
         const div=document.getElementById('yorumlar_'+cevapID);
         div.classList.toggle('d-none');
     }
@@ -75,11 +75,11 @@
         <cfquery datasource="DSN">
             INSERT INTO Cevap(soruID,cozenID,kullaniciCevabi,cozumMetni,onay,eklenmeTarihi)
             VALUES(
-                <cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">
-                <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
-                <cfqueryparam value="#kullaniciCevabi#" cfsqltype="cf_sql_varchar">
-                <cfqueryparam value="#cozumMetni#" cfsqltype="cf_sql_varchar">
-                <cfqueryparam value="#dogruMu#" cfsqltype="cf_sql_integer">
+                <cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#kullaniciCevabi#" cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value="#cozumMetni#" cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value="#dogruMu#" cfsqltype="cf_sql_integer">,
                 GETDATE()
             )
         </cfquery>
@@ -88,11 +88,11 @@
         <cfquery datasource="DSN">
             INSERT INTO Puan(kullaniciID,islemTipi,puanDegeri,referansID,referansTip,eklenmeTarihi)
             VALUES(
-                <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
-                <cfqueryparam value="#dogruMu ? 'dogru_cevap':'yanlis_cevap'#" cfsqltype="cf_sql_varchar">
-                <cfqueryparam value="#puan#" cfsqltype="cf_sql_integer">
-                <cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">
-                'soru'
+                <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#dogruMu ? 'dogru_cevap':'yanlis_cevap'#" cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value="#puan#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">,
+                'soru',
                 GETDATE()
             )
         </cfquery>
@@ -103,7 +103,7 @@
             WHERE id=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
         </cfquery>
 
-        <cfset SESSION.xp=SESSION.xp+#puan#>
+        <cfset SESSION.xp=SESSION.xp+puan>
 
         <cfset cevapKontrol=true>
         <cfset basari=dogruMu ? "Tebrikler,doğru çözdünüz!":"Maalesef,çözümünüzü kontrol ediniz! Doğru Cevap=#qSoru.dogruCevap#">
@@ -246,7 +246,7 @@
                                         <i class="bi bi-hand-thumbs-up"></i>#begeniSayisi#
                                     </a>
 
-                                    <button class="btn btn-sm btn-outline-primary" onclick="yorumlariGöster(#id#)">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="yorumlariGoster(#id#)">
                                         <i class="bi bi-chat"></i>Yorumlar
                                     </button>
                                 </div>
