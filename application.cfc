@@ -55,8 +55,5 @@
         <cfargument name="eventName" type="string" required="true">
 
         <cflog file="yksHata" text="#arguments.exception.message#">
-
-        <cfdump var="#arguments.exception#">
-        <cfabort>
     </cffunction>
 </cfcomponent>

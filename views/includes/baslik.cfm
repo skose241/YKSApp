@@ -73,7 +73,9 @@
 
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="##" role="button" data-bs-toggle="dropdown">
-                                    <img src="#application.avatarURL##SESSION.kullaniciAd#" class="rounded-circle" width="32" height="32">
+                                    <cfoutput>
+                                        <img src="#application.avatarURL##SESSION.kullaniciAd#" class="rounded-circle" width="32" height="32">
+                                    </cfoutput>
                                 </a>
 
                                 <ul class="dropdown-menu dropdown-menu-end">
@@ -89,7 +91,7 @@
                                         </a>
                                     </li>
 
-                                    <cfif SESSION.rol EQ 2 OR SESSION.rol EQ 3>
+                                    <cfif val(SESSION.rol) GTE 2>
                                         <li><hr class="dropdown-divider"></li>
 
                                         <li>

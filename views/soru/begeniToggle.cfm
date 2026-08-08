@@ -1,4 +1,4 @@
-<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
 
 <cfif NOT structKeyExists(url,"hedefID") OR NOT isNumeric(url.hedefID)>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">

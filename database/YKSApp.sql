@@ -244,3 +244,6 @@ INSERT INTO Ders(ad,alanID) VALUES
 ('TYT Fizik',4),
 ('TYT Kimya',4),
 ('TYT Biyoloji',4);
+
+UPDATE Kullanici SET rol=3 WHERE ad='admin'
+UPDATE Kullanici SET rol=2 WHERE ad='moderatör'

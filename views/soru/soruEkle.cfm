@@ -63,13 +63,12 @@
             <cffile action="delete" file="#yuklenenDosya.serverDirectory#/#yuklenenDosya.serverFile#">
             <cfset hata="Sadece JPG,JPEG,PNG veya WEBP formatı kabul edilmektedir.">
         <cfelse>
-            <cfset dosyaAdi=createUUID() & "." & dosyaUzantisi>
-
+            <cfset yeniAd=createUUID() & "." & dosyaUzantisi>
             <cffile action="rename"
-                    source="#yuklenenDosya.serverDirectory#/#yuklenenDosya.serverFile#"
-                    destination="#yuklenenDosya.serverDirectory#/#dosyaAdi#">
-
-            <cfset dosyaAdi=yuklenenDosya.serverFile>
+                    source="#resimYolu##yuklenenDosya.serverFile#"
+                    destination="#resimYolu##yeniAd#">
+                
+            <cfset dosyaAdi=yeniAd>
             
             <cfquery datasource="DSN">
                 INSERT INTO Soru(dersID,soranID,dogruCevap,soruResmi,aktiflik,goruntulenmeSayisi,eklenmeTarihi)
@@ -152,7 +151,7 @@
 
                                 <div id="onizlemeDiv" class="mt-3 text-center d-none">
                                     <p class="text-muted small mb-1">Seçilen Resim Önizlemesi</p>
-                                    <img id="onizleme" src="" alt="Soru Önizleme" class="img-fluid rounded border shadow-sm" style="max-height:300px;"
+                                    <img id="onizleme" src="" alt="Soru Önizleme" class="img-fluid rounded border shadow-sm" style="max-height:300px;">
                                 </div>
                             </div>
 
