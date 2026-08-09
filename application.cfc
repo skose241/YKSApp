@@ -10,6 +10,9 @@
         <cfset application.DSN="DSN">
         <cfset application.avatarURL="https://ui-avatars.com/api/?background=random&color=fff&size=64&bold=true&name=">
 
+        <cfset application.geminiKey="AQ.Ab8RN6I7Z1AVG434IiRacepq-kWPni4ctxFhBaJhlp-T9oRSmA">
+        <cfset application.geminiURL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent">
+
         <cfreturn true>
     </cffunction>
 

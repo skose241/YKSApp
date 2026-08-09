@@ -64,6 +64,8 @@ CREATE TABLE Soru(
 	soranID INT NOT NULL,
 	dogruCevap CHAR(1) NOT NULL,
 	soruResmi NVARCHAR(255) NOT NULL,
+	soruMetni NVARCHAR(MAX),
+	sistemSoru BIT DEFAULT 0,
 	aktiflik BIT DEFAULT 1,
 	goruntulenmeSayisi INT DEFAULT 0,
 	eklenmeTarihi DATETIME DEFAULT GETDATE(),
