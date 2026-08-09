@@ -1,0 +1,1 @@
+<cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">

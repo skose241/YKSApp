@@ -68,7 +68,15 @@
     <cfset kullaniciCevabi=trim(form.kullaniciCevabi)>
     <cfset cozumMetni=trim(form.cozumMetni)>
 
-    <cfif NOT listFind("A,B,C,D,E",kullaniciCevabi)>
+    <cfquery name="qSoran" datasource="DSN">
+        SELECT soranID 
+        FROM Soru 
+        WHERE id=<cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">
+    </cfquery>
+
+    <cfif qSoran.soranID EQ val(SESSION.kullaniciID)>
+        <cfset hata="Kendi sorunuzu çözemezsiniz.">
+    <cfelseif NOT listFind("A,B,C,D,E",kullaniciCevabi)>
         <cfset hata="Lütfen bir şık seçiniz.">
     <cfelse>
         <cfset dogruMu=kullaniciCevabi EQ qSoru.dogruCevap ? 1:0>
