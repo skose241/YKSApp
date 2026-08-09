@@ -12,110 +12,110 @@
     </head>
 
     <body>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand fw-bold" href="/YKSSite/index.cfm">
-                    <i class="bi bi-mortarboard-fill"></i>YKS Platform
-                </a>
+        <cfoutput>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container">
+                    <a class="navbar-brand fw-bold" href="/YKSSite/index.cfm">
+                        <i class="bi bi-mortarboard-fill"></i>YKS Platform
+                    </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="##navMenu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                <div class="collapse navbar-collapse" id="navMenu">
-                    <cfif NOT isDefined("SESSION.kullaniciID")>
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a class="nav-link" href="/YKSSite/views/kimlik/giris.cfm">
-                                    <i class="bi bi-box-arrow-in-right"></i>Giriş Yap
-                                </a>
-                            </li>
+                    <div class="collapse navbar-collapse" id="navMenu">
+                        <cfif NOT isDefined("SESSION.kullaniciID")>
+                            <ul class="navbar-nav ms-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/YKSSite/views/kimlik/giris.cfm">
+                                        <i class="bi bi-box-arrow-in-right"></i>Giriş Yap
+                                    </a>
+                                </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="/YKSSite/views/kimlik/kayit.cfm">
-                                    <i class="bi bi-person-plus"></i>Kayıt Ol
-                                </a>
-                            </li>
-                        </ul>
-                    <cfelse>
-                        <ul class="navbar-nav me-auto">
-                            <li class="nav-item">
-                                <a class="nav-link" href="/YKSSite/anaSayfa.cfm">
-                                    <i class="bi bi-house"></i>Ana Sayfa
-                                </a>
-                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/YKSSite/views/kimlik/kayit.cfm">
+                                        <i class="bi bi-person-plus"></i>Kayıt Ol
+                                    </a>
+                                </li>
+                            </ul>
+                        <cfelse>
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/YKSSite/anaSayfa.cfm">
+                                        <i class="bi bi-house"></i>Ana Sayfa
+                                    </a>
+                                </li>
 
-                            <li class="nav-item">
-                                <a class="nav-link" href="/YKSSite/views/soru/soruEkle.cfm">
-                                    <i class="bi bi-plus-circle"></i>Soru Ekle
-                                </a>
-                            </li>
-                        </ul>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/YKSSite/views/soru/soruEkle.cfm">
+                                        <i class="bi bi-plus-circle"></i>Soru Ekle
+                                    </a>
+                                </li>
+                            </ul>
 
-                        <ul class="navbar-nav ms-auto align-items-center">
-                            <li class="nav-item me-2">
-                                <a class="nav-link position-relative" href="/YKSSite/views/bildirim/bildirimler.cfm">
-                                    <i class="bi bi-bell"></i>
-                                    <cfquery name="qBildirim" datasource="DSN">
-                                        SELECT COUNT(*) AS adet
-                                        FROM Bildirim 
-                                        WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
-                                        AND goruldu=0 
-                                    </cfquery>
+                            <ul class="navbar-nav ms-auto align-items-center">
+                                <li class="nav-item me-2">
+                                    <a class="nav-link position-relative" href="/YKSSite/views/bildirim/bildirimler.cfm">
+                                        <i class="bi bi-bell"></i>
+                                        <cfquery name="qBildirim" datasource="DSN">
+                                            SELECT COUNT(*) AS adet
+                                            FROM Bildirim 
+                                            WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
+                                            AND goruldu=0 
+                                        </cfquery>
 
-                                    <cfoutput>
                                         <cfif qBildirim.adet GT 0>
                                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                                 #qBildirim.adet#
                                             </span>
                                         </cfif>
-                                    </cfoutput>
-                                </a>
-                            </li>
+                                    </a>
+                                </li>
 
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="##" role="button" data-bs-toggle="dropdown">
-                                    <cfoutput>
-                                        <img src="#application.avatarURL##SESSION.kullaniciAd#" class="rounded-circle" width="32" height="32">
-                                    </cfoutput>
-                                </a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="##" role="button" data-bs-toggle="dropdown">
+                                        <cfoutput>
+                                            <img src="#application.avatarURL##SESSION.kullaniciAd#" class="rounded-circle" width="32" height="32">
+                                        </cfoutput>
+                                    </a>
 
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="/YKSSite/views/profil/profilim.cfm">
-                                            <i class="bi bi-person"></i>Profilim 
-                                        </a>
-                                    </li>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="/YKSSite/views/profil/profilim.cfm">
+                                                <i class="bi bi-person"></i>Profilim 
+                                            </a>
+                                        </li>
 
-                                    <li>
-                                        <a class="dropdown-item" href="/YKSSite/views/profil/liderlikTablosu.cfm">
-                                            <i class="bi bi-trophy"></i>Liderlik Tablosu
-                                        </a>
-                                    </li>
+                                        <li>
+                                            <a class="dropdown-item" href="/YKSSite/views/profil/liderlikTablosu.cfm">
+                                                <i class="bi bi-trophy"></i>Liderlik Tablosu
+                                            </a>
+                                        </li>
 
-                                    <cfif val(SESSION.rol) GTE 2>
+                                        <cfif val(SESSION.rol) GTE 2>
+                                            <li><hr class="dropdown-divider"></li>
+
+                                            <li>
+                                                <a class="dropdown-item text-warning" href="/YKSSite/views/yonetim/panel.cfm">
+                                                    <i class="bi bi-shield"></i>Yönetim Paneli
+                                                </a>
+                                            </li>
+                                        </cfif>
+
                                         <li><hr class="dropdown-divider"></li>
 
                                         <li>
-                                            <a class="dropdown-item text-warning" href="/YKSSite/views/yonetim/panel.cfm">
-                                                <i class="bi bi-shield"></i>Yönetim Paneli
+                                            <a class="dropdown-item text-danger" href="/YKSSite/views/kimlik/cikis.cfm">
+                                                <i class="bi bi-box-arrow-right"></i>Çıkış Yap
                                             </a>
                                         </li>
-                                    </cfif>
-
-                                    <li><hr class="dropdown-divider"></li>
-
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="/YKSSite/views/kimlik/cikis.cfm">
-                                            <i class="bi bi-box-arrow-right"></i>Çıkış Yap
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </cfif>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </cfif>
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        </cfoutput>
     </body>
 </html>

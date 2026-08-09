@@ -278,7 +278,7 @@
 
                                             <div class="mt-1">
                                                 <span class="badge #onay EQ 1 ? 'bg-success':onay EQ 0 ?'bg-danger':'bg-secondary'#">
-                                                    #onay EQ 1 ? 'Doğru':onay EQ 2 ? 'Yanlış':'Belirsiz'#
+                                                    #onay EQ 1 ? 'Doğru':onay EQ 0 ? 'Yanlış':'Belirsiz'#
                                                 </span>
 
                                                 <small class="text-muted d-block mt-1">
