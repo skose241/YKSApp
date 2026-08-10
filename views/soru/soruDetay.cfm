@@ -316,7 +316,7 @@
                 </div>
 
                 <div class="d-grid">
-                    <a href="/YKSSite/views/sikayet/sikayetEkle.cfm?hedefTip=soru&hedefID=#soruID#" class="btn btn-outline-danger btn-sm">
+                    <a href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=soru&hedefID=#soruID#" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-flag"></i>Şikayet Et
                     </a>
                 </div>

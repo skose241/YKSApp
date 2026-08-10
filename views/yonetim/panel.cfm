@@ -260,7 +260,7 @@
                                                     </a>
                                                 </cfif>
 
-                                                <a href="?islem=sikayetCoz&sikayetID=#id#" class="btn btn-success btn-sm" onclick="return confirm('Şikayet çözüldü mü?')">
+                                                <a href="?islem=sikayetCoz&sikayetID=#id#" class="btn btn-success btn-sm" onclick="return confirm('Şikayeti onaylamak istediğinize emin misiniz?')">
                                                     <i class="bi bi-check-lg"></i>
                                                 </a>
 
