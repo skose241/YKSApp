@@ -1,2 +1,8 @@
-SELECT * FROM Ders 
-INNER JOIN Alan ON Alan.id=Ders.alanID
+ALTER TABLE Soru
+ADD sikA NVARCHAR(500),
+    sikB NVARCHAR(500),
+    sikC NVARCHAR(500),
+    sikD NVARCHAR(500),
+    sikE NVARCHAR(500),
+    aciklama NVARCHAR(MAX)
+   
