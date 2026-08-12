@@ -8,7 +8,7 @@
 <cfset soruID=val(url.id)>
 
 <cfquery name="qSoru" datasource="DSN">
-    SELECT s.id,s.soruResmi,s.dogruCevap,s.goruntulenmeSayisi,s.eklenmeTarihi,
+    SELECT s.id,s.soruResmi,s.soruMetni,s.sikA,s.sikB,s.sikC,s.sikD,s.sikE,s.aciklama,s.sistemSoru,s.dogruCevap,s.goruntulenmeSayisi,s.eklenmeTarihi,
         d.ad AS dersAd,a.ad AS alanAd,k.ad AS soranAd
     FROM Soru s 
     INNER JOIN Ders d ON d.id=s.dersID
@@ -135,6 +135,28 @@
     </cfif>
 </cfif>
 
+<cfif qSoru.sistemSoru EQ 0>
+    <div class="modal fade" id="aiCozModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-robot"></i>AI Çözümü
+                    </h5>
+                    <button type="button" class="btn btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="aiCozumIcerik">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-dark" role="status"></div>
+                        <p class="mt-2 text-muted">AI çözümü hazırlanıyor,lütfen bekleyiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</cfif>
+
 <cfoutput>
     <div class="container mt-4">
         <div class="row">
@@ -149,9 +171,24 @@
                         <small><i class="bi bi-eye"></i>#qSoru.goruntulenmeSayisi#</small>
                     </div>
 
-                    <div class="card-body text-center">
-                        <img src="/YKSSite/assets/images/sorular/#qSoru.soruResmi#" 
-                            class="img-fluid rounded" style="max-height:500px;">
+                    <div class="card-body">
+                        <cfif qSoru.sistemSoru EQ 1>
+                            <div class="p-3 bg-light rounded mb-3">
+                                <p class="fs-5 mb-4">#qSoru.soruMetni#</p>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="p-2 border rounded">A) #qSoru.sikA#</div>
+                                    <div class="p-2 border rounded">B) #qSoru.sikB#</div>
+                                    <div class="p-2 border rounded">C) #qSoru.sikC#</div>
+                                    <div class="p-2 border rounded">D) #qSoru.sikD#</div>
+                                    <div class="p-2 border rounded">E) #qSoru.sikE#</div>
+                                </div>
+                            </div>
+                        <cfelse>
+                            <div class="text-center">
+                                <img src="/YKSSite/assets/images/sorular/#qSoru.soruResmi#"
+                                    class="img-fluid rounded" style="max-height:500px;">
+                            </div>
+                        </cfif>
                     </div>
 
                     <div class="card-footer d-flex justify-content-between align-items-center">
@@ -218,6 +255,18 @@
                         Sizin Cevabınız:<strong>#qKontrol.kullaniciCevabi#</strong> - 
                         Doğru Cevap:<strong>#qSoru.dogruCevap#</strong>
                     </div>
+
+                    <cfif qSoru.sistemSoru EQ 1 AND len(trim(qSoru.aciklama)) GT 0>
+                        <div class="alert alert-info mt-3 shadow-sm" style="border-left:5px solid ##0dcaf0;">
+                            <h5 class="alert-heading text-info">
+                                <i class="bi bi-robot"></i>Yapay Zeka Çözüm Açıklaması
+                            </h5>
+                            <hr class="border-info">
+                            <p class="mb-0 text-dark">
+                                #replace(qSoru.aciklama,chr(10),"<br>","all")#
+                            </p>
+                        </div>
+                    </cfif>
                 </cfif>
 
                 <cfif qCevaplar.recordCount GT 0>
@@ -320,9 +369,40 @@
                         <i class="bi bi-flag"></i>Şikayet Et
                     </a>
                 </div>
+
+                <cfif qSoru.sistemSoru EQ 0>
+                    <div class="d-grid mt-2">
+                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="##aiCozModal">
+                            <i class="bi bi-robot"></i>AI ile Çöz
+                        </button>
+                    </div>
+                </cfif>
             </div>
         </div>
     </div>
 </cfoutput>
+
+<script>
+    document.getElementById('aiCozModal')?.addEventListener('show.bs.modal',function(){
+        const icerik=document.getElementById('aiCozumIcerik');
+        
+        if(icerik.dataset.yuklendi==='1') return;
+
+        fetch('/YKSSite/views/soru/aiCozdurme.cfm?soruID=<cfoutput>#soruID#</cfoutput>')
+            .then(r=>r.json())
+            .then(data=>{
+                if(data.basari){
+                    icerik.innerHTML='<div class="p-3">'+data.metin.replace(/\n/g,'<br>')+'</div>';
+                }else{
+                    icerik.innerHTML='<div class="alert alert-danger">'+data.hata+'</div>';
+                }
+
+                icerik.dataset.yuklendi='1';
+            })
+            .catch(()=>{
+                icerik.innerHTML='<div class="alert alert-danger">Bağlantı hatası.</div>';
+            });
+    });
+</script>
 
 <cfinclude template="/YKSSite/views/includes/altBilgi.cfm">

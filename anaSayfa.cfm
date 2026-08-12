@@ -28,6 +28,7 @@
     INNER JOIN Alan a ON a.id=d.alanID
     INNER JOIN Kullanici k ON k.id=s.soranID
     WHERE s.aktiflik=1
+    AND s.sistemSoru=0
     <cfif url.alanID GT 0>
         AND a.id=<cfqueryparam value="#url.alanID#" cfsqltype="cf_sql_integer">
     </cfif>
@@ -49,6 +50,7 @@
     INNER JOIN Ders d ON d.id=s.dersID
     INNER JOIN Alan a ON a.id=d.alanID
     WHERE s.aktiflik=1
+    AND s.sistemSoru=0
     <cfif url.alanID GT 0>
         AND a.id=<cfqueryparam value="#url.alanID#" cfsqltype="cf_sql_integer">
     </cfif>
@@ -60,7 +62,10 @@
 <cfset toplamSayfa=ceiling(qToplamSoru.toplam/sayfaBasi)>
 
 <cfquery name="qGunlukSoru" datasource="DSN">
-    SELECT TOP 1 s.id AS asilSoruID,s.soruResmi,d.ad AS dersAd,a.ad AS alanAd
+    SELECT TOP 5 
+        gs.id,s.id AS soruID,s.soruResmi,s.soruMetni,s.sistemSoru,
+        s.sikA,s.sikB,s.sikC,s.sikD,s.sikE,
+        d.ad AS dersAd,a.ad AS alanAd
     FROM GunlukSoru gs 
     INNER JOIN Soru s ON s.id=gs.soruID
     INNER JOIN Ders d ON d.id=s.dersID
@@ -73,6 +78,7 @@
     SELECT TOP 1 id 
     FROM Soru 
     WHERE aktiflik=1
+    AND sistemSoru=0
     ORDER BY goruntulenmeSayisi DESC 
 </cfquery>
 
@@ -92,161 +98,170 @@
 <cfquery name="qFavoriler" datasource="DSN">
     SELECT soruID 
     FROM Favori 
-    WHERE kullaniciID=<cfqueryparam value="#SESSION.kullaniciID#" cfsqltype="cf_sql_integer">
+    WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
 </cfquery>
 
 <cfset favoriListesi=valueList(qFavoriler.soruID)>
 
-<div class="container-fluid px-5 mt-4">
-    <div class="row">
-        <div class="col-md-9">
-            <div class="card mb-3">
-                <div class="card-body py-2">
-                    <form method="GET" class="row g-2 align-items-center">
-                        <input type="hidden" name="dersID" value="<cfoutput>#url.dersID#</cfoutput>">
-                        <div class="col-md-3">
-                            <select name="alanID" class="form-select form-select-sm" onchange="this.form.submit()">
-                                <option value="0">Tüm Alanlar</option>
-                                <cfoutput query="qAlan">
-                                    <option value="#id#" #url.alanID EQ id ? 'selected':''#>#ad#</option>
-                                </cfoutput>
-                            </select>
-                        </div>
+<cfoutput>
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card mb-3">
+                    <div class="card-body py-2">
+                        <form method="GET" class="row g-2 align-items-center">
+                            <div class="col-md-3">
+                                <select name="alanID" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="0">Tüm Alanlar</option>
+                                    <cfloop query="qAlan">
+                                        <option value="#id#" #url.alanID EQ id ? 'selected':''#>#ad#</option>
+                                    </cfloop>
+                                </select>
+                            </div>
 
-                        <div class="col-md-3">
-                            <select name="siralama" class="form-select form-select-sm">
-                                <option value="yeni" #url.siralama EQ 'yeni' ? 'selected':''#>En Popüler Sorular</option>
-                            </select>
-                        </div>
+                            <div class="col-md-3">
+                                <select name="siralama" class="form-select form-select-sm">
+                                    <option value="yeni" #url.siralama EQ 'yeni' ? 'selected':''#>En Popüler</option>
+                                </select>
+                            </div>
 
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-dark btn-sm w-100">
-                                <i class="bi bi-funnel"></i>Filtrele
-                            </button>
-                        </div>
-                    </form> 
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-dark btn-sm w-100">
+                                    <i class="bi bi-funnel"></i>Filtrele
+                                </button>
+                            </div>
+                        </form> 
+                    </div>
                 </div>
+
+                <cfif qSorular.recordCount EQ 0>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>Henüz soru bulunmamaktadır.
+                    </div>
+                <cfelse>
+                    <div class="row row-cols-1 row-cols-md-4 g-3">
+                        <cfloop query="qSorular">
+                            <cfset favoriMi=listFind(favoriListesi,id) GT 0>
+                            <div class="col">
+                                <div class="card h-100 shadow-sm">
+                                    <a href="/YKSSite/views/soru/soruDetay.cfm?id=#id#">
+                                        <img src="/YKSSite/assets/images/sorular/#soruResmi#"
+                                            class="card-img-top" style="height:160px; object-fit:cover;" alt="Soru">
+                                    </a>
+
+                                    <div class="card-body p-2">
+                                        <div class="mb-1">
+                                            <span class="badge bg-dark">#dersAd#</span>
+                                            <span class="badge bg-secondary">#alanAd#</span>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-1 mb-1">
+                                            <img src="#application.avatarURL##soranAd#"
+                                                width="20" height="20" class="rounded-circle">
+                                                <small class="text-muted">#soranAd#</small>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-eye"></i>#goruntulenmeSayisi#
+                                            </small>
+
+                                            <a href="/YKSSite/views/soru/favoriToggle.cfm?soruID=#id#&geri=#urlEncodedFormat(cgi.SCRIPT_NAME & '?' & cgi.QUERY_STRING)#" class="btn btn-sm #favoriMi ? 'btn-danger':'btn-outline-danger'#">
+                                                <i class="bi bi-heart#favoriMi ? '-fill':''#"></i>#favoriSayisi#
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </cfloop>
+                    </div>
+
+                    <cfif toplamSayfa GT 1>
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item #url.sayfa EQ 1 ? 'disabled':''#">
+                                    <a class="page-link" href="?alanID=#url.alanID#&dersID=#url.dersID#&siralama=#url.siralama#&sayfa=#url.sayfa-1#">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+
+                                <cfloop from="1" to="#toplamSayfa#" index="i">
+                                    <li class="page-item #url.sayfa EQ i ? 'active':''#">
+                                        <a class="page-link" href="?alanID=#url.alanID#&dersID=#url.dersID#&siralama=#url.siralama#&sayfa=#i#">#i#</a>
+                                    </li>
+                                </cfloop>
+
+                                <li class="page-item #url.sayfa EQ toplamSayfa ? 'disabled':''#">
+                                    <a class="page-link" href="?alanID=#url.alanID#&dersID=#url.dersID#&siralama=#url.siralama#&sayfa=#url.sayfa+1#">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </cfif>
+                </cfif>
             </div>
 
-            <cfif qSorular.recordCount EQ 0>
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>Henüz soru bulunmamaktadır.
-                </div>
-            <cfelse>
-                <div class="row row-cols-1 row-cols-md-4 g-3">
-                    <cfoutput query="qSorular">
-                        <div class="col">
-                            <div class="card h-100 shadow-sm">
-                                <a href="/YKSSite/views/soru/soruDetay.cfm?id=#id#">
-                                    <img src="/YKSSite/assets/images/sorular/#soruResmi#"
-                                        class="card-img-top" style="height:160px; object-fit:cover;" alt="soru">
-                                </a>
+            <div class="col-md-3">
+                <div class="card mb-3">
+                    <div class="card-header bg-dark text-white">
+                        <i class="bi bi-star"></i>Günün Soruları
+                    </div>
 
-                                <div class="card-body p-2">
-                                    <div class="mb-1">
-                                        <span class="badge bg-dark">#dersAd#</span>
-                                        <span class="badge bg-secondary">#alanAd#</span>
-                                    </div>
+                    <div class="card-body p-2">
+                        <cfif qGunlukSoru.recordCount GT 0>
+                            <cfloop query="qGunlukSoru">
+                                <div class="border-bottom pb-2 mb-2">
+                                    <span class="badge bg-secondary mb-1">#dersAd#</span>
 
-                                    <div class="d-flex align-items-center gap-1 mb-1">
-                                        <img src="#application.avatarURL##soranAd#"
-                                            width="20" height="20" class="rounded-circle">
-                                            <small class="text-muted">#soranAd#</small>
-                                    </div>
+                                    <cfif sistemSoru EQ 1>
+                                        <p class="small mb-1">#left(soruMetni,80)#...</p>
+                                    <cfelse>
+                                        <img src="/YKSSite/assets/images/sorular/#soruResmi#"
+                                            class="aimg-fluid rounded mb-1">
+                                    </cfif>
 
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">
-                                            <i class="bi bi-eye"></i>#goruntulenmeSayisi#
-                                        </small>
-
-                                        <cfset favoriMi=listFind(favoriListesi,id) GT 0>
-                                        <a href="/YKSSite/views/soru/favoriToggle.cfm?soruID=#id#&geri=#urlEncodedFormat(cgi.SCRIPT_NAME & '?' & cgi.QUERY_STRING)#" class="btn btn-sm #favoriMi ? 'btn-danger':'btn-outline-danger'#">
-                                            <i class="bi bi-heart#favoriMi ? '-fill':''#"></i>#favoriSayisi#
+                                    <div class="d-grid">
+                                        <a href="/YKSSite/views/soru/soruDetay.cfm?id=#soruID#" class="btn btn-dark btn-sm">
+                                            <i class="bi bi-pencil"></i>Cevapla
                                         </a>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </cfoutput>
-                </div>
-
-                <cfif toplamSayfa GT 1>
-                    <nav class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item #url.sayfa EQ 1 ? 'disabled':''#">
-                                <a class="page-link" href="?alanID=#url.alanID#&dersID=#url.dersID#&siralama=#url.siralama#&sayfa=#url.sayfa-1#">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                            </li>
-
-                            <cfloop from="1" to="#toplamSayfa#" index="i">
-                                <li class="page-item #url.sayfa EQ i ? 'active':''#">
-                                    <a class="page-link" href="?alanID=#url.alanID#&dersID=#url.dersID#&siralama=#url.siralama#&sayfa=#i#">#i#</a>
-                                </li>
                             </cfloop>
-
-                            <li class="page-item #url.sayfa EQ toplamSayfa ? 'disabled':''#">
-                                <a class="page-link" href="?alanID=#url.alanID#&dersID=#url.dersID#&siralama=#url.siralama#&sayfa=#url.sayfa+1#">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </cfif>
-            </cfif>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card mb-3">
-                <div class="card-header bg-dark text-white">
-                    <i class="bi bi-star"></i>Günün Sorusu
+                        <cfelse>
+                            <p class="text-muted small text-center mb-0">Bugün için soru eklenmemiş.</p> 
+                        </cfif>
+                    </div>
                 </div>
 
-                <div class="card-body p-2">
-                    <cfif qGunlukSoru.recordCount GT 0>
-                        <cfoutput>
-                            <span class="badge bg-secondary mb-2">#qGunlukSoru.dersAd#</span>
-                            <img src="/YKSSite/assets/images/sorular/#qGunlukSoru.soruResmi#"
-                                class="img-fluid rounded mb-2" alt="Günlük Soru">
-                            <div class="d-grid">
-                                <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qGunlukSoru.asilSoruID#" class="btn btn-dark btn-sm">
-                                    <i class="bi bi-pencil"></i>Cevapla
-                                </a>
-                            </div>
-                        </cfoutput>
-                    <cfelse>
-                        <p class="text-muted small text-center mb-0">Bugün için soru eklenmemiş.</p> 
-                    </cfif>
-                </div>
-            </div>
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <i class="bi bi-chat-dots"></i>Güncel Tartışma
+                    </div>
 
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <i class="bi bi-chat-dots"></i>Güncel Tartışma
-                </div>
+                    <div class="card-body p-2">
+                        <cfif isDefined("qYorumlar") AND qYorumlar.recordCount GT 0>
+                            <cfloop query="qYorumlar">
+                                <div class="border-bottom pb-2 mb-2">
+                                    <div class="d-flex align-items-center gap-1 mb-1">
+                                        <img src="#application.avatarURL##yazar#"
+                                            width="20" height="20" class="rounded-circle">
+                                        <small class="fw-bold">#yazar#</small>
+                                    </div>
 
-                <div class="card-body p-2">
-                    <cfif isDefined("qYorumlar") AND qYorumlar.recordCount GT 0>
-                        <cfoutput query="qYorumlar">
-                            <div class="border-bottom pb-2 mb-2">
-                                <div class="d-flex align-items-center gap-1 mb-1">
-                                    <img src="#application.avatarURL##yazar#"
-                                        width="20" height="20" class="rounded-circle">
-                                    <small class="fw-bold">#yazar#</small>
+                                    <small class="text-muted">#left(metin,80)##len(metin) GT 80 ? '...':''#</small>
                                 </div>
-
-                                <small class="text-muted">#left(metin,80)##len(metin) GT 80 ? '...':''#</small>
-                            </div>
-                        </cfoutput>
-                    <cfelse>
-                        <p class="text-muted small text-center mb-0">
-                            Henüz yorum yok.
-                        </p>
-                    </cfif>
+                            </cfloop>
+                        <cfelse>
+                            <p class="text-muted small text-center mb-0">
+                                Henüz yorum yok.
+                            </p>
+                        </cfif>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</cfoutput>
 
 <cfinclude template="/YKSSite/views/includes/altBilgi.cfm">

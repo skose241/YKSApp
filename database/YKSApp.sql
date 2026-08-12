@@ -200,6 +200,17 @@ CREATE TABLE Sikayet(
 
 GO
 
+CREATE TABLE HataLog(
+	id INT IDENTITY(1,1) PRIMARY KEY,
+	sayfa VARCHAR(100),
+	islem VARCHAR(100),
+	mesaj NVARCHAR(MAX),
+	detay NVARCHAR(MAX),
+	eklenmeTarihi DATETIME DEFAULT GETDATE()
+	);
+
+GO
+
 INSERT INTO GirisSoru(soruMetni) VALUES
 ('En sevdiğiniz öğretmeninizin adı nedir?'),
 ('En sevdiğiniz hayvan hangisidir??'),

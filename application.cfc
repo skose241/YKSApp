@@ -10,9 +10,10 @@
         <cfset application.DSN="DSN">
         <cfset application.avatarURL="https://ui-avatars.com/api/?background=random&color=fff&size=64&bold=true&name=">
 
-        <cfset application.geminiKey="AQ.Ab8RN6I7Z1AVG434IiRacepq-kWPni4ctxFhBaJhlp-T9oRSmA">
-        <cfset application.geminiURL="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent">
+        <cfset application.geminiKey=createObject("java","java.lang.System").getenv().get("GEMINI_API_KEY")>
+        <cfset application.geminiURL="https://generativelanguage.googleapis.com/v1beta/interactions">
 
+        <cfset application.aiKullaniciID=18>
         <cfreturn true>
     </cffunction>
 
@@ -52,11 +53,11 @@
         <cfargument name="sessionScope" required="true">
         <cfargument name="appScope" required="false">
     </cffunction>
-
+<!---
     <cffunction name="onError" returntype="void" output="false">
         <cfargument name="exception" required="true">
         <cfargument name="eventName" type="string" required="true">
 
         <cflog file="yksHata" text="#arguments.exception.message#">
-    </cffunction>
+    </cffunction> --->
 </cfcomponent>

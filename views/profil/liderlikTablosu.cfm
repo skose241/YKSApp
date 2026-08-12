@@ -6,7 +6,7 @@
         id,ad,xp,rol,kayitTarihi,
         ROW_NUMBER() OVER (ORDER BY xp DESC) AS siralama
     FROM Kullanici
-    WHERE aktiflik=1
+    WHERE aktiflik=1 AND ad!='YKS_AI'
     ORDER BY xp DESC
 </cfquery>
 

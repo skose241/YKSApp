@@ -1,8 +1,13 @@
-<cfinclude template="/YKSSite/views/includes/ai.cfm">
+﻿<cfsetting requesttimeout="400">
+<cfsetting showdebugoutput="false">
 
 <cfif NOT structKeyExists(url,"token") OR url.token NEQ "messiah">
     <cfabort>
 </cfif>
+
+<cfset ai=createObject("component","YKSSite.views.includes.ai")>
+
+<cfset sikLimit=400>
 
 <cfquery name="qKontrol" datasource="DSN">
     SELECT COUNT(*) AS adet 
@@ -18,149 +23,91 @@
 <cfset gunNo=dayOfWeek(now())>
 
 <cfswitch expression="#gunNo#">
-    <cfcase value="2"><cfset tytDersAd="TYT Türkçe"></cfcase>
-    <cfcase value="3"><cfset tytDersAd="TYT Sosyal"></cfcase>
-    <cfcase value="4"><cfset tytDersAd="TYT Matematik"></cfcase>
-    <cfcase value="5"><cfset tytDersAd="TYT Geometri"></cfcase>
-    <cfcase value="6"><cfset tytDersAd="TYT Fizik"></cfcase>
-    <cfcase value="7"><cfset tytDersAd="TYT Kimya"></cfcase>
-    <cfdefaultcase><cfset tytDersAd="TYT Biyoloji"></cfdefaultcase>
+    <cfcase value="2"><cfset tytDersID=18></cfcase>
+    <cfcase value="3"><cfset tytDersID=19></cfcase>
+    <cfcase value="4"><cfset tytDersID=23></cfcase>
+    <cfcase value="5"><cfset tytDersID=24></cfcase>
+    <cfcase value="6"><cfset tytDersID=25></cfcase>
+    <cfcase value="7"><cfset tytDersID=26></cfcase>
+    <cfdefaultcase><cfset tytDersID=27></cfdefaultcase>
 </cfswitch>
 
-<cfquery name="qTYTDers" datasource="DSN">
-    SELECT id 
+<cfswitch expression="#gunNo#">
+    <cfcase value="2"><cfset aytMatID=1></cfcase>
+    <cfcase value="3"><cfset aytMatID=1></cfcase>
+    <cfcase value="4"><cfset aytMatID=2></cfcase>
+    <cfcase value="5"><cfset aytMatID=1></cfcase>
+    <cfcase value="6"><cfset aytMatID=1></cfcase>
+    <cfcase value="7"><cfset aytMatID=2></cfcase>
+    <cfdefaultcase><cfset aytMatID=1></cfdefaultcase>
+</cfswitch>
+
+<cfswitch expression="#gunNo#">
+    <cfcase value="2"><cfset aytFenID=3></cfcase>
+    <cfcase value="3"><cfset aytFenID=4></cfcase>
+    <cfcase value="4"><cfset aytFenID=5></cfcase>
+    <cfcase value="5"><cfset aytFenID=3></cfcase>
+    <cfcase value="6"><cfset aytFenID=4></cfcase>
+    <cfcase value="7"><cfset aytFenID=5></cfcase>
+    <cfdefaultcase><cfset aytFenID=3></cfdefaultcase>
+</cfswitch>
+
+<cfswitch expression="#gunNo#">
+    <cfcase value="2"><cfset aytEAID=6></cfcase>
+    <cfcase value="3"><cfset aytEAID=6></cfcase>
+    <cfcase value="4"><cfset aytEAID=7></cfcase>
+    <cfcase value="5"><cfset aytEAID=6></cfcase>
+    <cfcase value="6"><cfset aytEAID=6></cfcase>
+    <cfcase value="7"><cfset aytEAID=8></cfcase>
+    <cfdefaultcase><cfset aytEAID=6></cfdefaultcase>
+</cfswitch>
+
+<cfswitch expression="#gunNo#">
+    <cfcase value="2"><cfset aytSozelID=9></cfcase>
+    <cfcase value="3"><cfset aytSozelID=10></cfcase>
+    <cfcase value="4"><cfset aytSozelID=11></cfcase>
+    <cfcase value="5"><cfset aytSozelID=12></cfcase>
+    <cfcase value="6"><cfset aytSozelID=9></cfcase>
+    <cfcase value="7"><cfset aytSozelID=10></cfcase>
+    <cfdefaultcase><cfset aytSozelID=11></cfdefaultcase>
+</cfswitch>
+
+<cfquery name="qDersler" datasource="DSN">
+    SELECT id AS dersID,ad AS dersAd
     FROM Ders 
-    WHERE ad=<cfqueryparam value="#tytDersAd#" cfsqltype="cf_sql_varchar">
+    WHERE id IN(
+        <cfqueryparam value="#tytDersID#" cfsqltype="cf_sql_integer">,
+        <cfqueryparam value="#aytMatID#" cfsqltype="cf_sql_integer">,
+        <cfqueryparam value="#aytFenID#" cfsqltype="cf_sql_integer">,
+        <cfqueryparam value="#aytEAID#" cfsqltype="cf_sql_integer">,
+        <cfqueryparam value="#aytSozelID#" cfsqltype="cf_sql_integer">
+    )
 </cfquery>
 
-<cfquery name="qAYTSayisal" datasource="DSN">
-    SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-    FROM Soru s 
-    INNER JOIN Ders d ON d.id=s.dersID
-    INNER JOIN Alan a ON a.id=d.alanID
-    WHERE a.id=1
-    AND s.aktiflik=1
-    AND s.sistemSoru=0
-    AND CAST(s.eklenmeTarihi AS DATE)=CAST(GETDATE() AS DATE)
-    ORDER BY s.goruntulenmeSayisi DESC
-</cfquery>
+<cfset dersAdi={}>
 
-<cfif qAYTSayisal.recordCount EQ 0>
-    <cfquery name="qAYTSayisal" datasource="DSN">
-        SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-        FROM Soru s 
-        INNER JOIN Ders d ON d.id=s.dersID
-        INNER JOIN Alan a ON a.id=d.alanID
-        WHERE a.id=1
-        AND s.aktiflik=1
-        AND s.sistemSoru=0
-        ORDER BY s.goruntulenmeSayisi DESC
-    </cfquery>
-</cfif>
-
-<cfquery name="qAYTSozel" datasource="DSN">
-    SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-    FROM Soru s 
-    INNER JOIN Ders d ON d.id=s.dersID
-    INNER JOIN Alan a ON a.id=d.alanID
-    WHERE a.id=2
-    AND s.aktiflik=1
-    AND s.sistemSoru=0
-    AND CAST(s.eklenmeTarihi AS DATE)=CAST(GETDATE() AS DATE)
-    ORDER BY s.goruntulenmeSayisi DESC
-</cfquery>
-
-<cfif qAYTSozel.recordCount EQ 0>
-    <cfquery name="qAYTSozel" datasource="DSN">
-        SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-        FROM Soru s 
-        INNER JOIN Ders d ON d.id=s.dersID
-        INNER JOIN Alan a ON a.id=d.alanID
-        WHERE a.id=2
-        AND s.aktiflik=1
-        AND s.sistemSoru=0
-        ORDER BY s.goruntulenmeSayisi DESC
-    </cfquery>
-</cfif>
-
-<cfquery name="qAYTEA" datasource="DSN">
-    SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-    FROM Soru s 
-    INNER JOIN Ders d ON d.id=s.dersID
-    INNER JOIN Alan a ON a.id=d.alanID
-    WHERE a.id=3
-    AND s.aktiflik=1
-    AND s.sistemSoru=0
-    AND CAST(s.eklenmeTarihi AS DATE)=CAST(GETDATE() AS DATE)
-    ORDER BY s.goruntulenmeSayisi DESC
-</cfquery>
-
-<cfif qAYTEA.recordCount EQ 0>
-    <cfquery name="qAYTEA" datasource="DSN">
-        SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-        FROM Soru s 
-        INNER JOIN Ders d ON d.id=s.dersID
-        INNER JOIN Alan a ON a.id=d.alanID
-        WHERE a.id=3
-        AND s.aktiflik=1
-        AND s.sistemSoru=0
-        ORDER BY s.goruntulenmeSayisi DESC
-    </cfquery>
-</cfif>
-
-<cfquery name="qAYTMat" datasource="DSN">
-    SELECT TOP 1 d.id AS dersID,d.ad AS dersAd
-    FROM Soru s 
-    INNER JOIN Ders d ON d.id=s.dersID
-    INNER JOIN Alan a ON a.id=d.alanID
-    WHERE a.sinavTuruID=2
-    AND d.ad LIKE 'AYT Matematik%'
-    AND s.aktiflik=1
-    AND s.sistemSoru=0
-    ORDER BY s.goruntulenmeSayisi DESC
-</cfquery>
+<cfloop query="qDersler">
+    <cfset dersAdi[qDersler.dersID]=qDersler.dersAd>
+</cfloop>
 
 <cfset dersler=[]>
+<cfset secimler=[
+    {id=tytDersID,alanID=4},
+    {id=aytMatID,alanID=1},
+    {id=aytFenID,alanID=1},
+    {id=aytEAID,alanID=3},
+    {id=aytSozelID,alanID=2}
+]>
 
-<cfif qTYTDers.recordCount GT 0>
-    <cfset arrayAppend(dersler,{
-        dersID=qTYTDers.id,
-        dersAd=tytDersAd,
-        alanID=4
-    })>
-</cfif>
-
-<cfif qAYTSayisal.recordCount GT 0>
-    <cfset arrayAppend(dersler,{
-        dersID=qAYTSayisal.dersID,
-        dersAd=qAYTSayisal.dersAd,
-        alanID=1
-    })>
-</cfif>
-
-<cfif qAYTSozel.recordCount GT 0>
-    <cfset arrayAppend(dersler,{
-        dersID=qAYTSozel.dersID,
-        dersAd=qAYTSozel.dersAd,
-        alanID=2
-    })>
-</cfif>
-
-<cfif qAYTEA.recordCount GT 0>
-    <cfset arrayAppend(dersler,{
-        dersID=qAYTEA.dersID,
-        dersAd=qAYTEA.dersAd,
-        alanID=3
-    })>
-</cfif>
-
-<cfif qAYTMat.recordCount GT 0>
-    <cfset arrayAppend(dersler,{
-        dersID=qAYTMat.dersID,
-        dersAd=qAYTMat.dersAd,
-        alanID=1
-    })>
-</cfif>
+<cfloop array="#secimler#" index="secim">
+    <cfif structKeyExists(dersAdi,secim.id)>
+        <cfset arrayAppend(dersler,{
+            dersID=secim.id,
+            dersAd=dersAdi[secim.id],
+            alanID=secim.alanID
+        })>
+    </cfif>
+</cfloop>
 
 <cfset uretilen=0>
 
@@ -169,59 +116,110 @@
 
     <cfset prompt="Sen bir YKS soru hazırlayıcısısın.
     Ders:#ders.dersAd#
-    Görev:Bu derse uygun,lise düzeyinde 5 şıklı(A,B,C,D,E) yeni bir soru üret. Yanıtını sadece şu formatta ver,başka hiçbir şey yazma:
-    
-    Soru:[soru metni buraya]
-    A)[şık metni]
-    B)[şık metni]
-    C)[şık metni]
-    D)[şık metni]
-    E)[şık metni]
-    
-    Cevap:[doğru şık]
-    Açıklama:[olabildiğince sade,çözüm açıklaması]">
+    Görev:Bu derse uygun,lise düzeyinde 5 şıklı(A,B,C,D,E) yeni bir soru üret. Soruların,2020 yılından itibaren çıkmış YKS soru formatında olmalı mutlaka. Soru yazarken şu istenilenlerin dışına lütfen,çıkma.
 
-    <cfset aiSonuc=metinUretme(prompt)>
+    -Para birimi için sembol kullanma. TL veya lira gibi yazı ile yaz mutlaka.    
+    -Markdown,yıldız,kalın yazı,başlık kullanma.
+    -Matematiksel ifadeleri LaTeX ile yaz.
+    --Satır içi formüller için tek dolar: $x^2+3x$
+    --Ayrı satırda gösterilecek büyük formüller için çift dolar: $$\int_0^1 x dx$$
+    --Küçüktür/Büyüktür için < ve > yerine \lt ve \gt kullan.
+    --Düz metin kısımlarında LaTeX kullanma,LaTeX sadece formüllerde kullanılacak çünkü.
+    --Kod bloğu(uç backtick) kullanma. Kalın yazı için çift yıldız kullanma.
+
+    Her bölüm ayrı satırda olsun ve aşağıdaki etiketlerin mutlaka hepsini kullanmalısın.
+    Yanıtını sadece şu formatta ver,başka hiçbir şey yazma:
+
+    Soru:[Sadece soru metni,şıklar dahil değil]
+    A)[şık metni,olabildiğince kısa tut.]
+    B)[şık metni,olabildiğince kısa tut.]
+    C)[şık metni,olabildiğince kısa tut.]
+    D)[şık metni,olabildiğince kısa tut.]
+    E)[şık metni,olabildiğince kısa tut.]
+
+    Cevap:[sadece doğru şık,başka da hiçbir metin olmayacak]
+    Açıklama:[olabildiğince sade şekilde çözüm açıklaması]
+    
+    Uyarı:Şıklar,LaTeX dahil #sikLimit# karakteri geçmesin. Ama mutlaka tüm şıklarda bir metin olsun. 
+    'Cevap' ve 'Açıklama' satırlarını asla atlamadan soru işlemini tamamla.
+    Sana güveniyorum ve tüm bu sadece tüm bu söylediklerime bağlı kalarak müthiş bir iş çıkarabileceğine inanıyorum.">
+
+    <cfset aiSonuc=ai.metinUretme(prompt)>
 
     <cfif aiSonuc.basari>
         <cfset cevapMetni=aiSonuc.metin>
 
         <cftry>
-            <cfset soruMetni=trim(reReplaceNoCase(cevapMetni,".*SORU:\s*","","one"))>
-            <cfset soruMetni=trim(reReplaceNoCase(cevapMetni,".*\nA\)\s*","","all"))>
+            <cfset temizMetin=reReplace(cevapMetni,"```[a-zA-Z]*", "", "all")>
+            <cfset temizMetin = replace(temizMetin,"**", "", "all")>
+            <cfset temizMetin = replace(temizMetin, chr(13), "", "all")>
 
-            <cfset sikA=trim(reReplaceNoCase(cevapMetni,".*\nA\)\s*","","one"))>
-            <cfset sikA=trim(reReplaceNoCase(sikA,"\nB\).*","","all"))>
+            <cfset satirlar=listToArray(temizMetin,chr(10))>
 
-            <cfset sikB=trim(reReplaceNoCase(cevapMetni,".*\nB\)\s*","","one"))>
-            <cfset sikB=trim(reReplaceNoCase(sikB,"\nC\).*","","all"))>
+            <cfset veri={soru="",A="",B="",C="",D="",E="",cevap="",aciklama=""}>
+            <cfset bolum="">
 
-            <cfset sikC=trim(reReplaceNoCase(cevapMetni,".*\nC\)\s*","","one"))>
-            <cfset sikC=trim(reReplaceNoCase(sikC,"\nD\).*","","all"))>
+            <cfloop array="#satirlar#" index="hamSatir">
+                <cfset satir=trim(hamSatir)>
+                <cfif NOT len(satir)><cfcontinue></cfif>
 
-            <cfset sikD=trim(reReplaceNoCase(cevapMetni,".*\nD\)\s*","","one"))>
-            <cfset sikD=trim(reReplaceNoCase(sikD,"\nE\).*","","all"))>
+                <cfif reFindNoCase("^soru\s*:",satir)>
+                    <cfset bolum="soru">
+                    <cfset veri.soru=trim(reReplaceNoCase(Satir,"^soru\s*:\s*", "", "one"))>
+                <cfelseif reFindNoCase("^[A-Ea-e]\s*[\)\.\-]\s*",satir)>
+                    <cfset bolum=uCase(left(satir,1))>
+                    <cfset veri[bolum]=trim(reReplaceNoCase(satir,"^[A-Ea-e]\s*[\)\.\-]\s*", "", "one"))>
+                <cfelseif reFindNoCase("^cevap\s*:", satir)>
+                    <cfset bolum="cevap">
+                    <cfset veri.cevap=trim(reReplaceNoCase(satir,"^cevap\s*:\s*", "", "one"))>
+                <cfelseif reFindNoCase("^a[cç][iı]klama\s*:",satir)>
+                    <cfset bolum="aciklama">
+                    <cfset veri.aciklama=trim(reReplaceNoCase(satir,"^a[cç][iı]klama\s*:\s*", "", "one"))>
+                <cfelseif len(bolum)>
+                    <cfset veri[bolum]=veri[bolum] & " " & satir>
+                </cfif>
+            </cfloop>
 
-            <cfset sikE=trim(reReplaceNoCase(cevapMetni,".*\nE\)\s*","","one"))>
-            <cfset sikE=trim(reReplaceNoCase(sikE,"\nCEVAP.*","","all"))>
+            <cfset dogruCevap=uCase(left(reReplace(veri.cevap,"[^A-Ea-e]", "", "all"),1))>
+            <cfset soruMetni=trim(veri.soru)>
+            <cfset sikA=trim(veri.A)>
+            <cfset sikB=trim(veri.B)>
+            <cfset sikC=trim(veri.C)>
+            <cfset sikD=trim(veri.D)>
+            <cfset sikE=trim(veri.E)>
+            <cfset aciklama=trim(veri.aciklama)>
 
-            <cfset dogruCevap=trim(reReplaceNoCase(cevapMetni,".*cEVAP:\s*","","one"))>
-            <cfset dogruCevap=trim(left(reReplaceNoCase(dogruCevap,"\n.*","","all"),1))>
-            <cfset dogruCevap=uCase(dogruCevap)>
+            <cfset eksikler="">
 
-            <cfset aciklama=trim(reReplaceNoCase(cevapMetni,".*AÇIKLAMA:\s*","","one"))>
+            <cfif NOT listFind("A,B,C,D,E",dogruCevap)>
+                <cfset eksikler=listAppend(eksikler,"Doğru Cevap:'#dogruCevap#'")>
+            </cfif>
 
-            <cfif listFind("A,B,C,D,E",dogruCevap) AND len(soruMetni) GT 10>
+            <cfif len(soruMetni) LTE 10>
+                <cfset eksikler=listAppend(eksikler,"Soru Metni kısa:(#len(soruMetni)#)")>
+            </cfif>
+
+            <cfloop list="A,B,C,D,E" index="h">
+                <cfif NOT len(trim(veri[h]))>
+                    <cfset eksikler=listAppend(eksikler,"Şık#h# boş.")>
+                <cfelseif len(trim(veri[h])) GT sikLimit>
+                    <cfset eksikler=listAppend(eksikler,"Şık#h# uzun:(#len(trim(veri[h]))#)")>
+                </cfif>
+            </cfloop>
+
+            <cfif NOT len(eksikler)>
                 <cfquery datasource="DSN" result="qYeniSoru">
                     INSERT INTO Soru(
-                        dersID,soranID,dogruCevap,soruResmi,soruMetni,sikA,sikB,sikC,sikD,sikE,aciklama,sistemSoru,aktiflik,goruntulenmeSayisi,eklenmeTarihi
+                        dersID,soranID,dogruCevap,soruResmi,soruMetni,
+                        sikA,sikB,sikC,sikD,sikE,aciklama,
+                        sistemSoru,aktiflik,goruntulenmeSayisi,eklenmeTarihi
                     )
                     VALUES(
                         <cfqueryparam value="#ders.dersID#" cfsqltype="cf_sql_integer">,
                         <cfqueryparam value="#application.aiKullaniciID#" cfsqltype="cf_sql_integer">,
-                        <cfqueryparam value="#dogruCevap#" cfsqltype="cf_sql_varchar">,
+                        <cfqueryparam value="#dogruCevap#" cfsqltype="cf_sql_char">,
                         <cfqueryparam value="" cfsqltype="cf_sql_varchar">,
-                        <cfqueryparam value="#soruMetni#" cfsqltype="cf_sql_varchar">,
+                        <cfqueryparam value="#soruMetni#" cfsqltype="varchar">,
                         <cfqueryparam value="#sikA#" cfsqltype="cf_sql_varchar">,
                         <cfqueryparam value="#sikB#" cfsqltype="cf_sql_varchar">,
                         <cfqueryparam value="#sikC#" cfsqltype="cf_sql_varchar">,
@@ -242,11 +240,11 @@
                         CAST(GETDATE() AS DATE),
                         <cfqueryparam value="#ders.alanID#" cfsqltype="cf_sql_integer">,
                         'ai',
-                        0
+                        0 
                     )
                 </cfquery>
 
-                <cfset logKaydetme(
+                <cfset ai.logKaydetme(
                     kullaniciID=application.aiKullaniciID,
                     soruID=qYeniSoru.generatedKey,
                     islemTipi="gunluk_uretim",
@@ -255,17 +253,46 @@
                 )>
 
                 <cfset uretilen=uretilen+1>
+            <cfelse>
+                <cfquery datasource="DSN">
+                    INSERT INTO HataLog(sayfa,islem,mesaj,detay,eklenmeTarihi)
+                    VALUES(
+                        '/YKSSite/views/yonetim/gunlukSoruUretme.cfm',
+                        'Format Uyuşmazlığı(AI)',
+                        <cfqueryparam value="#ders.dersAd# | Eksik:#eksikler#" cfsqltype="cf_sql_varchar">,
+                        <cfqueryparam value="#cevapMetni#" cfsqltype="cf_sql_varchar">,
+                        GETDATE()
+                    )
+                </cfquery>
             </cfif>
 
             <cfcatch type="any">
-                <cflog file="yksHata" text="Soru Parse Hatası:#cfcatch.message#">
+                <cfquery datasource="DSN">
+                    INSERT INTO HataLog(sayfa,islem,mesaj,detay,eklenmeTarihi)
+                    VALUES(
+                        '/YKSSite/views/yonetim/gunlukSoruUretme.cfm',
+                        'Soru Parse Hatası:',
+                        <cfqueryparam value="#cfcatch.message#" cfsqltype="cf_sql_varchar">,
+                        <cfqueryparam value="#cfcatch.detail#" cfsqltype="cf_sql_varchar">,
+                        GETDATE()
+                    )
+                </cfquery>
             </cfcatch>
         </cftry>
     <cfelse>
-        <cflog file="yksHata" text="Gemini Hatası:#aiSonuc.hata#">
+        <cfquery datasource="DSN">
+            INSERT INTO HataLog(sayfa,islem,mesaj,detay,eklenmeTarihi)
+            VALUES(
+                '/YKSSite/views/yonetim/gunlukSoruUretme.cfm',
+                'Gemini API Hatası:',
+                <cfqueryparam value="#ders.dersAd# | #aiSonuc.hata#" cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value="#left(aiSonuc.ham,8000)#" cfsqltype="cf_sql_varchar">,
+                GETDATE()
+            )
+        </cfquery>
     </cfif>
 
-    <cfset sleep(2000)>
+    <cfset sleep(40000)>
 </cfloop>
 
 <cfoutput>#uretilen# soru üretildi.</cfoutput>

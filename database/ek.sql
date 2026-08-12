@@ -1,8 +1,1 @@
-ALTER TABLE Soru
-ADD sikA NVARCHAR(500),
-    sikB NVARCHAR(500),
-    sikC NVARCHAR(500),
-    sikD NVARCHAR(500),
-    sikE NVARCHAR(500),
-    aciklama NVARCHAR(MAX)
-   
+SELECT id, ad FROM Kullanici WHERE id = 18
