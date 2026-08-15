@@ -1,1 +1,1 @@
-SELECT id, ad FROM Kullanici WHERE id = 18
+FROM HataLog ORDER BY eklenmeTarihi DESC

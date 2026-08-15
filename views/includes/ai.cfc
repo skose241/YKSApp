@@ -25,14 +25,23 @@
 
     <cffunction name="gemini" access="private" returntype="struct" output="false">
         <cfargument name="input" type="any" required="true">
+        <cfargument name="amac" type="string" required="false" default="soru">
         <cfargument name="zamanAsimi" type="numeric" required="false" default="150">
 
         <cfset var local={}>
         <cfset local.sonuc={basari=false,metin="",hata="",ham=""}>
 
         <cftry>
-            <cfif NOT structKeyExists(application,"geminiKey") OR NOT len(trim(application.geminiKey))>
-                <cfset local.sonuc.hata="GEMINI_API_KEY okunamadı.Lucee servisini yeniden başlatın.">
+            <cfif arguments.amac EQ "cozum">
+                <cfset local.anahtar=structKeyExists(application,"geminiCozumKey") ? application.geminiCozumKey:"">
+                <cfset local.anahtarAd="GEMINI_API_KEY_Cozum">
+            <cfelse>
+                <cfset local.anahtar=structKeyExists(application,"geminiSoruKey") ? application.geminiSoruKey:"">
+                <cfset local.anahtarAd="GEMINI_API_KEY_Soru">
+            </cfif>
+
+            <cfif NOT len(trim(local.anahtar))>
+                <cfset local.sonuc.hata="#local.anahtarAd# okunamadı. Lucee servisini yeniden başlatın.">
                 <cfreturn local.sonuc>
             </cfif>
 
@@ -47,7 +56,7 @@
                     charset="UTF-8"
                     timeout="#arguments.zamanAsimi#">
                 <cfhttpparam type="header" name="Content-Type" value="application/json; charset=UTF-8">
-                <cfhttpparam type="header" name="x-goog-api-key" value="#application.geminiKey#">
+                <cfhttpparam type="header" name="x-goog-api-key" value="#local.anahtar#">
                 <cfhttpparam type="body" value="#serializeJSON(local.istek)#">
             </cfhttp>
 
@@ -76,15 +85,17 @@
 
     <cffunction name="metinUretme" returntype="struct" output="false">
         <cfargument name="prompt" type="string" required="true">
+        <cfargument name="amac" type="string" required="false" default="soru">
 
-        <cfreturn gemini(input=arguments.prompt)>
+        <cfreturn gemini(input=arguments.prompt,amac=arguments.amac)>
     </cffunction>
 
     <cffunction name="resimCozme" returntype="struct" output="false">
         <cfargument name="resimYolu" type="string" required="true">
+        <cfargument name="amac" type="string" required="false" default="cozum">
         <cfargument name="prompt" type="string" required="true">
 
-        <cfset local={}>
+        <cfset var local={}>
         <cfset local.sonuc={basari=false,metin="",hata="",ham=""}>
 
         <cftry>
@@ -114,7 +125,8 @@
                     {"type":"text","text":arguments.prompt},
                     {"type":"image","data":local.base64,"mime_type":local.mime}
                 ],
-                zamanAsimi=180
+                amac=arguments.amac,
+                zamanAsimi=60
             )>
 
             <cfcatch type="any">
@@ -123,6 +135,30 @@
         </cftry>
             
         <cfreturn local.sonuc>
+    </cffunction>
+
+    <cffunction name="hataYazma" returntype="void" output="false">
+        <cfargument name="sayfa" type="string" required="true">
+        <cfargument name="islem" type="string" required="true">
+        <cfargument name="mesaj" type="string" required="true">
+        <cfargument name="detay" type="string" required="false" default="">
+
+        <cftry>
+            <cfquery datasource="DSN">
+                INSERT INTO HataLog(sayfa,islem,mesaj,detay,eklenmeTarihi)
+                VALUES(
+                    <cfqueryparam value="#arguments.sayfa#" cfsqltype="cf_sql_varchar">,
+                    <cfqueryparam value="#arguments.islem#" cfsqltype="cf_sql_varchar">,
+                    <cfqueryparam value="#left(arguments.mesaj,3000)#" cfsqltype="cf_sql_longvarchar">,
+                    <cfqueryparam value="#left(arguments.detay,8000)#" cfsqltype="cf_sql_longvarchar">,
+                    GETDATE()
+                )
+            </cfquery>
+
+            <cfcatch type="any">
+
+            </cfcatch>
+        </cftry>
     </cffunction>
 
     <cffunction name="logKaydetme" returntype="void" output="false">
@@ -139,24 +175,20 @@
                     <cfqueryparam value="#arguments.kullaniciID#" cfsqltype="cf_sql_integer" null="#(arguments.kullaniciID EQ 0)#">,
                     <cfqueryparam value="#arguments.soruID#" cfsqltype="cf_sql_integer" null="#(arguments.soruID EQ 0)#">,
                     <cfqueryparam value="#arguments.islemTipi#" cfsqltype="cf_sql_varchar">,
-                    <cfqueryparam value="#arguments.girdi#" cfsqltype="cf_sql_varchar">,
-                    <cfqueryparam value="#arguments.cikti#" cfsqltype="cf_sql_varchar">,
+                    <cfqueryparam value="#arguments.girdi#" cfsqltype="cf_sql_longvarchar">,
+                    <cfqueryparam value="#arguments.cikti#" cfsqltype="cf_sql_longvarchar">,
                     <cfqueryparam value="#variables.model#" cfsqltype="cf_sql_varchar">,
                     GETDATE()
                 )
             </cfquery>
 
             <cfcatch type="any">
-                <cfquery datasource="DSN">
-                    INSERT INTO HataLog(sayfa,islem,mesaj,detay,eklenmeTarihi)
-                    VALUES(
-                        '/YKSSite/views/includes/ai.cfc',
-                        'logKaydetme',
-                        <cfqueryparam value="#cfcatch.message#" cfsqltype="cf_sql_varchar">,
-                        <cfqueryparam value="#cfcatch.detail#" cfsqltype="cf_sql_varchar">,
-                        GETDATE()
-                    )
-                </cfquery>
+                <cfset hataYazma(
+                    sayfa="/YKSSite/views/includes/ai.cfc",
+                    islem="logKaydetme",
+                    mesaj=cfcatch.message,
+                    detay=cfcatch.detail
+                )>
             </cfcatch>
         </cftry>
     </cffunction>

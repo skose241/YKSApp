@@ -10,8 +10,11 @@
         <cfset application.DSN="DSN">
         <cfset application.avatarURL="https://ui-avatars.com/api/?background=random&color=fff&size=64&bold=true&name=">
 
-        <cfset application.geminiKey=createObject("java","java.lang.System").getenv().get("GEMINI_API_KEY")>
+        <cfset application.geminiSoruKey=createObject("java","java.lang.System").getenv().get("GEMINI_API_KEY_Soru")>
+        <cfset application.geminiCozumKey=createObject("java","java.lang.System").getenv().get("GEMINI_API_KEY_Cozum")>
         <cfset application.geminiURL="https://generativelanguage.googleapis.com/v1beta/interactions">
+
+        <cfset application.aiLimit=5>
 
         <cfset application.aiKullaniciID=18>
         <cfreturn true>

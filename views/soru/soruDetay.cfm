@@ -382,27 +382,4 @@
     </div>
 </cfoutput>
 
-<script>
-    document.getElementById('aiCozModal')?.addEventListener('show.bs.modal',function(){
-        const icerik=document.getElementById('aiCozumIcerik');
-        
-        if(icerik.dataset.yuklendi==='1') return;
-
-        fetch('/YKSSite/views/soru/aiCozdurme.cfm?soruID=<cfoutput>#soruID#</cfoutput>')
-            .then(r=>r.json())
-            .then(data=>{
-                if(data.basari){
-                    icerik.innerHTML='<div class="p-3">'+data.metin.replace(/\n/g,'<br>')+'</div>';
-                }else{
-                    icerik.innerHTML='<div class="alert alert-danger">'+data.hata+'</div>';
-                }
-
-                icerik.dataset.yuklendi='1';
-            })
-            .catch(()=>{
-                icerik.innerHTML='<div class="alert alert-danger">Bağlantı hatası.</div>';
-            });
-    });
-</script>
-
 <cfinclude template="/YKSSite/views/includes/altBilgi.cfm">

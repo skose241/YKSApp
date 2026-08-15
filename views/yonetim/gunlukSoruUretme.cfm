@@ -5,6 +5,11 @@
     <cfabort>
 </cfif>
 
+<cfoutput>
+    Soru Key uzunluk: #len(createObject("java","java.lang.System").getenv().get("GEMINI_API_KEY_Soru"))#<br>
+    Cozum Key uzunluk: #len(createObject("java","java.lang.System").getenv().get("GEMINI_API_KEY_Cozum"))#
+</cfoutput>
+
 <cfset ai=createObject("component","YKSSite.views.includes.ai")>
 
 <cfset sikLimit=400>

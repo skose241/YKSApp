@@ -13,8 +13,55 @@
                 {left:"$$",right:"$$",display:true},
                 {left:"$",right:"$",display:false},
                 {left:"\\(",right:"\\)",display:false},
-                {left:"\\[",rigth:"\\]",display:true}
-            ]
+                {left:"\\[",right:"\\]",display:true}
+            ],
+            throwOnError=false
         });
     });
+</script>
+
+<script>
+    document.getElementById('aiCozModal')?.addEventListener('show.bs.modal',function(){
+        const icerik=document.getElementById('aiCozumIcerik');
+        
+        if(icerik.dataset.yuklendi==='1') return;
+
+        fetch('/YKSSite/views/soru/aiCozdurme.cfm?soruID=<cfoutput>soruID</cfoutput>')
+            .then(r=>r.json())
+            .then(data=>{
+                if(data.basari){
+                    icerik.innerHTML='<div class="p-3">'+data.metin.replace(/\n/g,'<br>')+'</div>';
+                }else{
+                    icerik.innerHTML='<div class="alert alert-danger">'+data.hata+'</div>';
+                }
+
+                icerik.dataset.yuklendi='1';
+            })
+            .catch(()=>{
+                icerik.innerHTML='<div class="alert alert-danger">Bağlantı hatası.</div>';
+            });
+    });
+</script>
+
+<script>
+    fetch('/YKSSite/views/soru/aiCozdurme.cfm?soruID='+soruID)
+        .then(r=>r.json())
+        .then(data=>{
+            if(data.basari){
+                document.getElementById('aiCozum').innerHTML=data.metin;
+
+                renderMathInElement(document.getElementById('aiCozum'),{
+                    delimiters:[
+                        {left:"$$",right:"$$",display:true},
+                        {left:"$",right:"$",display:false}
+                    ],
+                    throwOnError:false
+                });
+            }else{
+                document.getElementById('aiCozum').innerHTML=data.hata;
+            }
+        })
+        .catch(()=>{
+            document.getElementById('aiCozum').innerHTML='Bağlantı hatası,tekrar deneyiniz.';
+        });
 </script>
