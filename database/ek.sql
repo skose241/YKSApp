@@ -1,1 +1,0 @@
-FROM HataLog ORDER BY eklenmeTarihi DESC

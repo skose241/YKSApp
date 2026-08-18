@@ -1,12 +1,20 @@
-﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
-
-<cfif isDefined("SESSION.kullaniciID")>
+﻿<cfif structKeyExists(SESSION,"kullaniciID") AND val(SESSION.kullaniciID)>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
+
 <cfparam name="hata" default="">
+<cfparam name="bilgi" default="">
+
+<cfif structKeyExists(url,"durum") AND url.durum EQ "engelli">
+    <cfset bilgi="Hesabınız engellenmiştir. Lütfen yönetici ile iletişime geçiniz.">
+</cfif>
 
 <cfif structKeyExists(form,"girisYap")>
+    <cfparam name="form.kullaniciAd" default="">
+    <cfparam name="form.sifre" default="">
+
     <cfset kullaniciAd=trim(form.kullaniciAd)>
     <cfset sifre=trim(form.sifre)>
     <cfset beniHatirla=structKeyExists(form,"beniHatirla")>
@@ -18,45 +26,63 @@
 
         <cfquery name="qGiris" datasource="DSN">
             SELECT id,ad,rol,xp
-            FROM Kullanici 
+            FROM Kullanici
             WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
             AND sifre=<cfqueryparam value="#sifreHash#" cfsqltype="cf_sql_varchar">
             AND aktiflik=1
         </cfquery>
 
         <cfif qGiris.recordCount EQ 1>
-            <cfset SESSION.kullaniciID=val(qGiris.id)>
-            <cfset SESSION.kullaniciAd=qGiris.ad>
-            <cfset SESSION.rol=qGiris.rol>
-            <cfset SESSION.xp=qGiris.xp>
+            <cftry>
+                <cfset sessionRotate()>
 
-            <cfquery datasource="DSN">
-                UPDATE Kullanici 
-                SET sonGirisTarihi=<cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">
-                WHERE id=<cfqueryparam value="#qGiris.id#" cfsqltype="cf_sql_integer">
-            </cfquery>
+                <cfset SESSION.kullaniciID=val(qGiris.id)>
+                <cfset SESSION.kullaniciAd=qGiris.ad>
+                <cfset SESSION.rol=val(qGiris.rol)>
+                <cfset SESSION.xp=val(qGiris.xp)>
 
-            <cfset token=hash(qGiris.id & now() & createUUID(),"SHA-256")>
+                <cfquery datasource="DSN">
+                    UPDATE Kullanici
+                    SET sonGirisTarihi=<cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">
+                    WHERE id=<cfqueryparam value="#qGiris.id#" cfsqltype="cf_sql_integer">
+                </cfquery>
 
-            <cfquery datasource="DSN">
-                INSERT INTO Oturum(kullaniciID,sessionToken,girisTarihi,aktiflik)
-                VALUES(
-                    <cfqueryparam value="#qGiris.id#" cfsqltype="cf_sql_integer">,
-                    <cfqueryparam value="#token#" cfsqltype="cf_sql_varchar">,
-                    <cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">,
-                    1
-                )
-            </cfquery>
+                <cfif beniHatirla>
+                    <cfset token=hash(qGiris.id & getTickCount() & createUUID(),"SHA-256")>
 
-            <cfif beniHatirla>
-                <cfcookie name="beniHatirla" value="#token#" expires="30">
-            <cfelse>
-                <cfcookie name="beniHatirla" value="" expires="now">
-            </cfif> 
+                    <cfquery datasource="DSN">
+                        UPDATE Oturum
+                        SET aktiflik=0
+                        WHERE kullaniciID=<cfqueryparam value="#qGiris.id#" cfsqltype="cf_sql_integer">
+                        AND aktiflik=1
+                        AND girisTarihi<DATEADD(DAY,-30,GETDATE())
+                    </cfquery>
 
-            <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+                    <cfquery datasource="DSN">
+                        INSERT INTO Oturum(kullaniciID,sessionToken,girisTarihi,sonGoruldu,aktiflik)
+                        VALUES(
+                            <cfqueryparam value="#qGiris.id#" cfsqltype="cf_sql_integer">,
+                            <cfqueryparam value="#token#" cfsqltype="cf_sql_varchar">,
+                            <cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">,
+                            <cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">,
+                            1
+                        )
+                    </cfquery>
+
+                    <cfcookie name="beniHatirla" value="#token#" expires="30" httponly="true">
+                <cfelse>
+                    <cfcookie name="beniHatirla" value="" expires="now">
+                </cfif>
+
+                <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+
+                <cfcatch type="any">
+                    <cfset hata="Giriş sırasında bir hata oluştu.">
+                </cfcatch>
+            </cftry>
         <cfelse>
             <cfset hata="Kullanıcı adı veya şifre hatalı.">
+            <cfset sleep(600)>
         </cfif>
     </cfif>
 </cfif>
@@ -67,25 +93,31 @@
             <div class="col-md-5">
                 <div class="card shadow">
                     <div class="card-header bg-dark text-white text-center">
-                        <h4><i class="bi bi-box-arrow-in-right"></i>Giriş Yap</h4>
+                        <h4 class="mb-0"><i class="bi bi-box-arrow-in-right"></i>Giriş Yap</h4>
                     </div>
 
                     <div class="card-body">
-                        <cfif hata NEQ "">
+                        <cfif len(bilgi)>
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>#encodeForHTML(bilgi)#
+                            </div>
+                        </cfif>
+
+                        <cfif len(hata)>
                             <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#hata#
+                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
                             </div>
                         </cfif>
 
                         <form method="POST">
                             <div class="mb-3">
                                 <label class="form-label">Kullanıcı Adı:</label>
-                                <input type="text" name="kullaniciAd" class="form-control" maxlength="15" required>
+                                <input type="text" name="kullaniciAd" class="form-control" maxlength="15" autocomplete="username" required>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label">Şifre:</label>
-                                <input type="password" name="sifre" class="form-control" minlength="6" required> 
+                                <input type="password" name="sifre" class="form-control" minlength="6" autocomplete="current-password" required>
                             </div>
 
                             <div class="mb-3 d-flex justify-content-between align-items-center">

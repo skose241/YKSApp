@@ -1,17 +1,27 @@
-<cfif NOT isDefined("SESSION.kullaniciID")>
+<cfif NOT structKeyExists(SESSION,"kullaniciID") OR NOT val(SESSION.kullaniciID)>
     <cflocation url="/YKSSite/views/kimlik/giris.cfm" addtoken="false">
 </cfif>
 
-<cfquery name="qAktiflik" datasource="DSN">
-    SELECT aktiflik
-    FROM Kullanici 
+<cfquery name="qOturumKullanici" datasource="DSN">
+    SELECT id,ad,rol,xp,aktiflik
+    FROM Kullanici
     WHERE id=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
 </cfquery>
 
-<cfif qAktiflik.recordCount EQ 0 OR qAktiflik.aktiflik EQ 0>
-    <cfset structClear(SESSION)>
-    
-    <cfcookie name="beniHatirla" value="" expires="now">
+<cfif qOturumKullanici.recordCount EQ 0 OR qOturumKullanici.aktiflik EQ 0>
+    <cfquery datasource="DSN">
+        UPDATE Oturum
+        SET aktiflik=0
+        WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
+        AND aktiflik=1
+    </cfquery>
 
-    <cflocation url="/YKSSite/views/kimlik/giris.cfm" addtoken="false">
+    <cfcookie name="beniHatirla" value="" expires="now">
+    <cfset structClear(SESSION)>
+
+    <cflocation url="/YKSSite/views/kimlik/giris.cfm?durum=engelli" addtoken="false">
 </cfif>
+
+<cfset SESSION.kullaniciAd=qOturumKullanici.ad>
+<cfset SESSION.rol=val(qOturumKullanici.rol)>
+<cfset SESSION.xp=val(qOturumKullanici.xp)>

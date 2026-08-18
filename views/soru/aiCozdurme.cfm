@@ -1,67 +1,87 @@
-<cfheader name="Content-Type" value="application/json; charset=UTF-8">
+<cfsetting requesttimeout="100">
+<cfsetting showdebugoutput="false" enablecfoutputonly="true">
 
-<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+<cfcontent type="application/json; charset=utf-8" reset="true">
 
 <cfset ai=createObject("component","YKSSite.views.includes.ai")>
 
-<cfif NOT structKeyExists(url,"soruID") OR NOT isNumeric(url.soruID)>
-    <cfoutput>{"basari":false,"hata":"Geçersiz istek."}</cfoutput>
+<cffunction name="jsonYazma" returntype="void" output="true">
+    <cfargument name="veri" type="struct" required="true">
+
+    <cfoutput>#serializeJSON(arguments.veri)#</cfoutput>
     <cfabort>
+</cffunction>
+
+<cfif NOT structKeyExists(SESSION,"kullaniciID") OR NOT val(SESSION.kullaniciID)>
+    <cfset jsonYazma({"basari"=false,"hata"="Bu özellik için giriş yapmalısınız."})>
+</cfif>
+
+<cfquery name="qAktif" datasource="DSN">
+    SELECT aktiflik
+    FROM Kullanici
+    WHERE id=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
+</cfquery>
+
+<cfif qAktif.recordCount EQ 0 OR qAktif.aktiflik EQ 0>
+    <cfset jsonYazma({"basari"=false,"hata"="Oturumunuz geçersiz."})>
+</cfif>
+
+<cfif NOT structKeyExists(url,"soruID") OR NOT isNumeric(url.soruID) OR val(url.soruID) LTE 0>
+    <cfset jsonYazma({"basari"=false,"hata"="Geçersiz istek."})>
 </cfif>
 
 <cfset soruID=val(url.soruID)>
 
 <cfquery name="qSoru" datasource="DSN">
-    SELECT s.soruResmi,s.soruMetni,s.sikA,s.sikB,s.sikC,s.sikD,s.sikE,d.ad AS dersAd
-    FROM Soru s 
+    SELECT s.soruResmi,s.soruMetni,s.sikA,s.sikB,s.sikC,s.sikD,s.sikE,s.dogruCevap,d.ad AS dersAd
+    FROM Soru s
     INNER JOIN Ders d ON d.id=s.dersID
     WHERE s.id=<cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">
     AND s.aktiflik=1
 </cfquery>
 
 <cfif qSoru.recordCount EQ 0>
-    <cfoutput>{"basari":false,"hata":"Soru bulunamadı."}</cfoutput>
-    <cfabort>
+    <cfset jsonYazma({"basari"=false,"hata"="Soru bulunamadı."})>
 </cfif>
 
-<cfset gunlukLimit=structKeyExists(application,"aiLimit") ? application.aiLimit:10>
+<cfquery name="qOnBellek" datasource="DSN">
+    SELECT TOP 1 cikti
+    FROM AI
+    WHERE soruID=<cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">
+    AND islemTipi='kullanici_cozum'
+    AND cikti IS NOT NULL
+    ORDER BY eklenmeTarihi DESC
+</cfquery>
+
+<cfif qOnBellek.recordCount GT 0 AND len(trim(qOnBellek.cikti))>
+    <cfset ai.logKaydetme(
+        kullaniciID=val(SESSION.kullaniciID),
+        soruID=soruID,
+        islemTipi="kullanici_cozum_onbellek",
+        girdi="onbellekten",
+        cikti=""
+    )>
+
+    <cfset jsonYazma({"basari"=true,"metin"=qOnBellek.cikti,"onbellek"=true})>
+</cfif>
+
+<cfset gunlukLimit=structKeyExists(application,"aiLimit") ? val(application.aiLimit):5>
 
 <cfquery name="qLimit" datasource="DSN">
-    SELECT COUNT(*) AS adet 
-    FROM AI 
+    SELECT COUNT(*) AS adet
+    FROM AI
     WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
     AND islemTipi='kullanici_cozum'
     AND CAST(eklenmeTarihi AS DATE)=CAST(GETDATE() AS DATE)
 </cfquery>
 
 <cfif qLimit.adet GTE gunlukLimit>
-    <cfoutput>{"basari":false,"hata":"Günlük AI limitine(#gunlukLimit#) ulaştınız."}</cfoutput>
-    <cfabort>
-</cfif>
-<cfquery name="qOnBellek" datasource="DSN">
-    SELECT TOP 1 cikti
-    FROM AI 
-    WHERE soruID=<cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">
-    AND islemTipi='kullanici_cozum'
-    ORDER BY eklenmeTarihi DESC
-</cfquery>
-
-<cfif qOnBellek.recordCount GT 0>
-    <cfset ai.logKaydetme(
-        kullaniciID=val(SESSION.kullaniciID),
-        soruID=soruID,
-        islemTipi="kullanici_cozum",
-        girdi="onbellekten",
-        cikti=qOnBellek.cikti
-    )>
-
-    <cfoutput>{"basari":true,"metin":#serializeJSON(qOnBellek.cikti)#,"onbellek":true}</cfoutput>
-    <cfabort>
+    <cfset jsonYazma({"basari"=false,"hata"="Günlük AI limitine(#gunlukLimit#) ulaştınız."})>
 </cfif>
 
-<cfset prompt="Sen bir YKS uzmanısın. Sana gelen #qSoru.dersAd# sorusunu,ortalama bir lise öğrencisinin anlayabileceği sadelikte anlatmanı istiyorum. Cevap yazarken şu istenilenlerin dışına lütfen,çıkma.
+<cfset kurallar="Cevap oluştururken,lütfen şu kuralların dışına çıkma.
 
-    -Para birimi için sembol kullanma. TL veya lira gibi yazı ile yaz mutlaka.    
+    -Para birimi için sembol kullanma. TL veya lira gibi yazı ile yaz mutlaka.
     -Markdown,yıldız,kalın yazı,başlık kullanma.
     -Matematiksel ifadeleri LaTeX ile yaz.
     --Satır içi formüller için tek dolar: $x^2+3x$
@@ -70,34 +90,54 @@
     --Düz metin kısımlarında LaTeX kullanma,LaTeX sadece formüllerde kullanılacak çünkü.
     --Kod bloğu(uç backtick) kullanma. Kalın yazı için çift yıldız kullanma.
 
-    Her bölüm ayrı satırda olsun ve aşağıdaki etiketlerin mutlaka hepsini kullanmalısın.
-    Yanıtını sadece şu formatta ver,başka hiçbir şey yazma:
-    
-    Doğru Cevap:#qSoru.dogruCevap# şıkkıdır.
-    Açıklama:Bu cevabın neden doğru olduğunu istenilen şekilde belirt. Ayrıca diğer şıkların neden olamayacağına da kısaca değin.
-    
-    Uyarı:'Doğru Cevap' ve 'Açıklama' satırlarını asla atlamadan çözüm işlemini tamamla.
-    Sana güveniyorum ve tüm bu sadece tüm bu söylediklerime bağlı kalarak müthiş bir iş çıkarabileceğine inanıyorum.">
+    Yanıtını,'Doğru Cevap:' ve 'Açıklama:' ile başlayan satırlar halinde ver. Başka da hiçbir şey yazma.
+    Uyarı:'Doğru Cevap' ve 'Açıklama' satırlarını asla atlamadan çözüm işlemini tamamla.">
 
-<cfif len(trim(qSoru.soruResmi))>
+<cfset gorselMi=len(trim(qSoru.soruResmi)) GT 0>
+
+<cfif gorselMi>
     <cfset resimYolu=expandPath("/YKSSite/assets/images/sorular/#qSoru.soruResmi#")>
+
+    <cfif NOT fileExists(resimYolu)>
+        <cfset jsonYazma({"basari"=false,"hata"="Soru görseli bulunamadı."})>
+    </cfif>
+
+    <cfset istekPrompt="Ekteki görselde bir #qSoru.dersAd# sorusu var.
+
+    ÖNEMLİ:Görseldeki soruyu ve şıkları dikkatlice oku. SADECE görselde yazan soruyu çöz. Lütfen kendi kafandan soru uydurup farklı bir soru çözme.
+    Görseli okuyamıyorsan veya soru net okunabilir halde değilse çözüm üretme,sadece 'Görsel Okunamıyor.' yaz.
+
+    Açıklamanda:'Bu sorunun doğru cevabı:#qSoru.dogruCevap# şıkkıdır. Çünkü..' diyerekten ortalama bir lise öğrencisinin anlayabileceği şekilde tane tane anlat. Diğer şıkların neden olamayacağına da kısaca değin.
+
+    " & kurallar>
+
     <cfset sonuc=ai.resimCozme(
         resimYolu=resimYolu,
-        prompt=prompt
+        prompt=istekPrompt,
+        amac="cozum",
+        zamanAsimi=80,
+        yenidenDene=false
     )>
 <cfelse>
-    <cfset soruMetniOzet= "Ders:#qSoru.dersAd##chr(10)#"
-                    & "Soru:#qSoru.soruMetni##chr(10)#"
-                    & "A)#qSoru.sikA##chr(10)#"
-                    & "B)#qSoru.sikB##chr(10)#"
-                    & "C)#qSoru.sikC##chr(10)#"
-                    & "D)#qSoru.sikD##chr(10)#"
-                    & "E)#qSoru.sikE##chr(10)#"
-                    & prompt>
-    
+    <cfset istekPrompt="Aşağıdaki #qSoru.dersAd# sorusunu ortalama bir lise öğrencisinin anlayabileceği sadelikte çöz.
+
+    Ders:#qSoru.dersAd#
+    Soru:#qSoru.soruMetni#
+    A)#qSoru.sikA#
+    B)#qSoru.sikB#
+    C)#qSoru.sikC#
+    D)#qSoru.sikD#
+    E)#qSoru.sikE#
+
+    Açıklamanda:'Bu sorunun doğru cevabı:#qSoru.dogruCevap# şıkkıdır. Çünkü..' diyerekten tane tane anlat. Diğer şıkların neden olamayacağına da kısaca değin.
+
+    " & kurallar>
+
     <cfset sonuc=ai.metinUretme(
-        prompt=soruMetniOzet,
-        amac="cozum"
+        prompt=istekPrompt,
+        amac="cozum",
+        zamanAsimi=80,
+        yenidenDene=false
     )>
 </cfif>
 
@@ -106,11 +146,11 @@
         kullaniciID=val(SESSION.kullaniciID),
         soruID=soruID,
         islemTipi="kullanici_cozum",
-        girdi=prompt,
+        girdi="soruID:#soruID# | #gorselMi ? 'gorsel':'metin'#",
         cikti=sonuc.metin
     )>
 
-    <cfoutput>{"basari":true,"metin":#serializeJSON(sonuc.metin)#,"onbellek":false}</cfoutput>
+    <cfset jsonYazma({"basari"=true,"metin"=sonuc.metin,"onbellek"=false})>
 <cfelse>
     <cfset ai.hataYazma(
         sayfa="/YKSSite/views/soru/aiCozdurme.cfm",
@@ -119,5 +159,5 @@
         detay=sonuc.ham
     )>
 
-    <cfoutput>{"basari":false,"hata":"Şu an çözüm üretilemiyor,lütfen tekrar deneyiniz."}</cfoutput>
+    <cfset jsonYazma({"basari"=false,"hata"="Şu an çözüm üretilemiyor,lütfen daha sonra tekrar deneyiniz."})>
 </cfif>

@@ -1,18 +1,18 @@
-<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 <cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
-
-<cfquery datasource="DSN">
-    UPDATE Bildirim
-    SET goruldu=1
-    WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
-    AND goruldu=0
-</cfquery>
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfquery name="qBildirim" datasource="DSN">
     SELECT id,islemTipi,mesaj,goruldu,hedefURL,tarih
     FROM Bildirim
     WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
     ORDER BY tarih DESC
+</cfquery>
+
+<cfquery datasource="DSN">
+    UPDATE Bildirim
+    SET goruldu=1
+    WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
+    AND goruldu=0
 </cfquery>
 
 <cfoutput>
@@ -34,33 +34,28 @@
                         <cfelse>
                             <div class="list-group list-group-flush">
                                 <cfloop query="qBildirim">
-                                    <a href="#hedefURL NEQ '' ? hedefURL:'##'#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
+                                    <cfset renk=qBildirim.islemTipi EQ 'sistem' ? 'primary':qBildirim.islemTipi EQ 'yorum' ? 'success':'warning'>
+                                    <cfset ikon=qBildirim.islemTipi EQ 'sistem' ? 'gear':qBildirim.islemTipi EQ 'yorum' ? 'chat-dots':'robot'>
+                                    <cfset hedef=len(trim(qBildirim.hedefURL)) ? qBildirim.hedefURL:'##'>
+
+                                    <a href="#encodeForHTMLAttribute(hedef)#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
                                         <div class="flex-shrink-0">
-                                            <span class="rounded-circle p-2 d-inline-flex
-                                                #islemTipi EQ 'sistem' ? 'bg-primary':
-                                                islemTipi EQ 'kullanici' ? 'bg-success':
-                                                'bg-warning'# bg-opacity-10">
-                                                <i class="bi bi-
-                                                    #islemTipi EQ 'sistem' ? 'gear':
-                                                    islemTipi EQ 'kullanici' ? 'person':
-                                                    'robot'#
-                                                    text-#islemTipi EQ 'sistem' ? 'primary':
-                                                        islemTipi EQ 'kullanici' ? 'success':
-                                                        'warning'#">
-                                                </i>
+                                            <span class="rounded-circle p-2 d-inline-flex bg-#renk# bg-opacity-10">
+                                                <i class="bi bi-#ikon# text-#renk#"></i>
                                             </span>
                                         </div>
 
                                         <div class="flex-grow-1">
-                                            <p class="mb-0 #goruldu EQ 0 ? 'fw-bold':'text-muted'#">#mesaj#</p>
+                                            <p class="mb-0 #qBildirim.goruldu EQ 0 ? 'fw-bold':'text-muted'#">#encodeForHTML(qBildirim.mesaj)#</p>
+
                                             <small class="text-muted">
                                                 <i class="bi bi-clock"></i>
-                                                #dateFormat(tarih,'dd.mm.yyyy')#
-                                                #timeFormat(tarih,'HH:mm')#
+                                                #dateFormat(qBildirim.tarih,'dd.mm.yyyy')#
+                                                #timeFormat(qBildirim.tarih,'HH:mm')#
                                             </small>
                                         </div>
 
-                                        <cfif hedefURL NEQ "">
+                                        <cfif len(trim(qBildirim.hedefURL))>
                                             <div class="flex-shrink-0 align-self-center">
                                                 <i class="bi bi-chevron-right text-muted"></i>
                                             </div>
