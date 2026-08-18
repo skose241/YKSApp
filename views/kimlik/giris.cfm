@@ -69,9 +69,9 @@
                         )
                     </cfquery>
 
-                    <cfcookie name="beniHatirla" value="#token#" expires="30" httponly="true">
+                    <cfcookie name="beniHatirla" value="#token#" expires="30" httponly="true" secure="true">
                 <cfelse>
-                    <cfcookie name="beniHatirla" value="" expires="now">
+                    <cfcookie name="beniHatirla" value="" expires="now" secure="true">
                 </cfif>
 
                 <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">

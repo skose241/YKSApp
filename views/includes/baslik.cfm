@@ -9,6 +9,9 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
         <link href="/YKSSite/assets/css/style.css" rel="stylesheet">
+
+        <link rel="manifest" href="/YKSSite/manifest.json">
+        <meta name="theme-color" content="#212529">
     </head>
 
     <body>
@@ -128,3 +131,9 @@
                 </div>
             </nav>
         </cfoutput>
+
+        <script>
+            if('serviceWorker' in navigator){
+                navigator.serviceWorker.register('/YKSSite/service-worker.js');
+            }
+        </script>
