@@ -2,6 +2,10 @@
     <cflocation url="/YKSSite/views/kimlik/giris.cfm" addtoken="false">
 </cfif>
 
+<cfif NOT structKeyExists(SESSION,"csrf")>
+    <cfset SESSION.csrf=hash(createUUID() & getTickCount(),"SHA-256")>
+</cfif>
+
 <cfquery name="qOturumKullanici" datasource="DSN">
     SELECT id,ad,rol,xp,aktiflik
     FROM Kullanici

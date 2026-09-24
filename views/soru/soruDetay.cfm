@@ -1,5 +1,5 @@
-﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
-<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfif NOT structKeyExists(url,"id") OR NOT isNumeric(url.id) OR val(url.id) LTE 0>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
@@ -116,7 +116,7 @@
                             VALUES(
                                 <cfqueryparam value="#qEtkilenen.cozenID#" cfsqltype="cf_sql_integer">,
                                 <cfqueryparam value="sistem" cfsqltype="cf_sql_varchar">,
-                                <cfqueryparam value="#yeniDurum EQ 1 ? 'Çözdüğünüz bir sorunun cevap anahtarı düzeltildi, cevabınız doğru sayıldı.':'Çözdüğünüz bir sorunun cevap anahtarı düzeltildi, cevabınız yanlış olarak güncellendi.'#" cfsqltype="cf_sql_varchar">,
+                                <cfqueryparam value="#yeniDurum EQ 1 ? 'Çözdüğünüz bir sorunun cevap anahtarı düzeltildi,cevabınız doğru sayıldı.':'Çözdüğünüz bir sorunun cevap anahtarı düzeltildi,cevabınız yanlış olarak güncellendi.'#" cfsqltype="cf_sql_varchar">,
                                 0,
                                 <cfqueryparam value="/YKSSite/views/soru/soruDetay.cfm?id=#soruID#" cfsqltype="cf_sql_varchar">,
                                 GETDATE()
@@ -133,7 +133,7 @@
                 </cfquery>
             </cftransaction>
 
-            <cfset cevapBasari="Doğru cevap #qEski.dogruCevap# → #yeniCevap# olarak güncellendi. Kullanıcı cevapları ve puanları yeniden hesaplandı.">
+            <cfset cevapBasari="Doğru cevap #qEski.dogruCevap# → #yeniCevap# olarak güncellendi.Kullanıcı cevapları ve puanları yeniden hesaplandı.">
 
             <cfquery name="qXP" datasource="DSN">
                 SELECT xp FROM Kullanici
@@ -253,7 +253,7 @@
             </cfif>
 
             <cfset cevapKontrol=true>
-            <cfset basari=dogruMu ? "Tebrikler,doğru çözdünüz! (+5 XP)":"Maalesef,çözümünüzü kontrol ediniz! Doğru Cevap=#qSoru.dogruCevap#">
+            <cfset basari=dogruMu ? "Tebrikler,doğru çözdünüz!(+5 XP)":"Maalesef,çözümünüzü kontrol ediniz!Doğru Cevap=#qSoru.dogruCevap#">
 
             <cfquery name="qKontrol" datasource="DSN">
                 SELECT id,kullaniciCevabi,onay
@@ -332,370 +332,336 @@
 <cfset aiCozumGoster=cevapKontrol AND (qSoru.sistemSoru EQ 0 OR NOT len(trim(qSoru.aciklama)))>
 <cfset geriURL=urlEncodedFormat("/YKSSite/views/soru/soruDetay.cfm?id=" & soruID)>
 
-<script>
-    function yorumlariGoster(cevapID){
-        document.getElementById('yorumlar_'+cevapID).classList.toggle('d-none');
-    }
-
-    function yanitAc(yorumID){
-        document.getElementById('yanit_'+yorumID).classList.toggle('d-none');
-    }
-</script>
-
-<cfif aiCozumGoster>
-    <div class="modal fade" id="aiCozModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title"><i class="bi bi-robot"></i>AI Çözümü</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body" id="aiCozumIcerik">
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-dark" role="status"></div>
-                        <p class="mt-2 text-muted">AI çözümü hazırlanıyor,lütfen bekleyiniz.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</cfif>
-
 <cfoutput>
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="badge bg-secondary">#encodeForHTML(qSoru.alanAd)#</span>
-                            <span class="badge bg-light text-dark">#encodeForHTML(qSoru.dersAd)#</span>
-                        </div>
+    <div class="sutunlar">
+        <div class="yigin">
+            <article class="kart">
+                <div class="kart__baslik">
+                    <span class="soru__ust" style="margin:0">
+                        <span class="rozet rozet--sinav">#encodeForHTML(qSoru.alanAd)#</span>
+                        <span class="rozet rozet--ders">#encodeForHTML(qSoru.dersAd)#</span>
 
-                        <small><i class="bi bi-eye"></i>#qSoru.goruntulenmeSayisi#</small>
-                    </div>
-
-                    <div class="card-body">
                         <cfif qSoru.sistemSoru EQ 1>
-                            <div class="p-3 bg-light rounded mb-3">
-                                <p class="fs-5 mb-4">#encodeForHTML(qSoru.soruMetni)#</p>
+                            <span class="rozet rozet--yz">Yapay Zeka Sorusu:</span>
+                        </cfif>
+                    </span>
 
-                                <div class="d-flex flex-column gap-2">
-                                    <div class="p-2 border rounded">A) #encodeForHTML(qSoru.sikA)#</div>
-                                    <div class="p-2 border rounded">B) #encodeForHTML(qSoru.sikB)#</div>
-                                    <div class="p-2 border rounded">C) #encodeForHTML(qSoru.sikC)#</div>
-                                    <div class="p-2 border rounded">D) #encodeForHTML(qSoru.sikD)#</div>
-                                    <div class="p-2 border rounded">E) #encodeForHTML(qSoru.sikE)#</div>
+                    <span class="veri sessiz">Görüntülenme Sayısı:#qSoru.goruntulenmeSayisi#</span>
+                </div>
+
+                <div class="kart__govde">
+                    <cfif qSoru.sistemSoru EQ 1>
+                        <p class="soru__metin">#encodeForHTML(qSoru.soruMetni)#</p>
+                    <cfelseif len(trim(qSoru.soruResmi))>
+                        <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qSoru.soruResmi)#"
+                            class="soru-gorsel" alt="Soru Resmi">
+                    <cfelse>
+                        <p class="soru__metin">#encodeForHTML(qSoru.soruMetni)#</p>
+                    </cfif>
+                </div>
+
+                <div class="kart__ayrac">
+                    <div class="eylem-seridi">
+                        <span class="mini-avatar">#uCase(left(qSoru.soranAd,2))#</span>
+                        
+                        <span class="sessiz">#encodeForHTML(qSoru.soranAd)# · #dateFormat(qSoru.eklenmeTarihi,'dd.mm.yyyy')#</span>
+                        <span class="eylem-seridi__bosluk"></span>
+
+                        <form method="POST" action="/YKSSite/views/soru/favoriToggle.cfm" class="favori-form">
+                            <input type="hidden" name="csrf" value="#SESSION.csrf#">
+                            <input type="hidden" name="soruID" value="#soruID#">
+                            <input type="hidden" name="geri" value="#geriURL#">
+
+                            <button class="favori#favoriKontrol ? ' favori--dolu':''#" type="submit">
+                                <svg class="simge"><use href="###favoriKontrol ? 's-kalp-dolu':'s-kalp'#"></use></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+
+            <cfif len(hata)>
+                <div class="bildirim bildirim--hata" role="alert">#encodeForHTML(hata)#</div>
+            </cfif>
+
+            <cfif NOT cevapKontrol>
+                <cfif qSoru.soranID EQ kullaniciID>
+                    <div class="bildirim" role="status">Kendi sorunuzu çözemezsiniz.</div>
+                <cfelse>
+                    <section class="kart">
+                        <div class="kart__baslik">Cevabınız:</div>
+
+                        <div class="kart__govde">
+                            <form method="POST" action="?id=#soruID#">
+                                <div class="siklar<cfif qSoru.sistemSoru NEQ 1> siklar--satir</cfif>" role="radiogroup" aria-label="Şıklar">
+                                    <cfloop list="A,B,C,D,E" index="sik">
+                                        <cfset sikMetni=qSoru.sistemSoru EQ 1 ? trim(qSoru["sik" & sik]) : "">
+                                        
+                                        <label class="sik<cfif NOT len(sikMetni)> sik--sade</cfif>">                                            
+                                            <input type="radio" name="kullaniciCevabi" value="#sik#" required>
+                                            <span class="optik" aria-hidden="true">#sik#</span>
+
+                                            <cfif len(sikMetni)>
+                                                <span class="sik__yazi">#encodeForHTML(sikMetni)#</span>
+                                            <cfelse>
+                                                <span class="gizli-metin">#sik# Şıkkı</span>
+                                            </cfif>
+                                        </label>
+                                    </cfloop>
+                                </div>
+                                
+                                <div class="alan">
+                                    <label for="cozumMetni">Çözümünüz<span class="sessiz">(isteğe bağlı):</span></label>
+                                    <textarea class="girdi" name="cozumMetni" id="cozumMetni" rows="4" maxlength="2000" placeholder="Çözümünüzü anlatmak ister misiniz?"></textarea>
+                                </div>
+        
+                                <button class="dugme dugme--ana dugme--tam" type="submit" name="cevapGonder" value="1">Çözüm Gönder</button>
+                            </form>
+                        </div>
+                    </section>
+                </cfif>
+            <cfelse>
+                <cfset sonucSinif=qKontrol.onay EQ 1 ? "sonuc--dogru":"sonuc--yanlis">
+                <div class="sonuc #sonucSinif#">
+                    <cfif qSoru.sistemSoru EQ 1>
+                        <section class="kart">
+                            <div class="kart__baslik">Şıklar:</div>
+
+                            <div class="kart__govde">
+                                <div class="siklar">
+                                    <cfloop list="A,B,C,D,E" index="sik">
+                                        <cfset sikMetni=trim=(qSoru["sik" & sik])>
+                                        <cfset sikSinif="">
+
+                                        <cfif compareNoCase(sik,qSoru.dogruCevap) EQ 0>
+                                            <cfset sikSinif=" sik--dogru">
+                                        <cfelseif compareNoCase(sik,qKontrol.kullaniciCevabi EQ 0)>
+                                            <cfset sikSinif=" sik--yanlis">
+                                        </cfif>
+
+                                        <div class="sik#sikSinif#">
+                                            <span class="optik" aria-hidden="true">#sik#</span>
+                                            <span class="sik__yazi">#encodeForHTML(sikMetni)#</span>
+                                        </div>
+                                    </cfloop>
                                 </div>
                             </div>
-                        <cfelseif len(trim(qSoru.soruResmi))>
-                            <div class="text-center">
-                                <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qSoru.soruResmi)#"
-                                    class="img-fluid rounded" style="max-height:500px;" alt="Soru Görseli">
-                            </div>
-                        <cfelse>
-                            <p class="fs-5">#encodeForHTML(qSoru.soruMetni)#</p>
-                        </cfif>
-                    </div>
-
-                    <div class="card-footer d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="#application.avatarURL##urlEncodedFormat(qSoru.soranAd)#"
-                                class="rounded-circle" width="28" height="28" alt="">
-                            <small class="text-muted">#encodeForHTML(qSoru.soranAd)# . #dateFormat(qSoru.eklenmeTarihi,'dd.mm.yyyy')#</small>
-                        </div>
-
-                        <a href="/YKSSite/views/soru/favoriToggle.cfm?soruID=#soruID#&geri=#geriURL#" class="btn btn-sm #favoriKontrol ? 'btn-danger':'btn-outline-danger'#">
-                            <i class="bi bi-heart#favoriKontrol ? '-fill':''#"></i>
-                            #favoriKontrol ? 'Favoriden Çıkar':'Favoriye Ekle'#
-                        </a>
-                    </div>
+                        </section>
+                    </cfif>
                 </div>
 
-                <cfif len(hata)>
-                    <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
+                <cfif qSoru.sistemSoru EQ 1 AND len(trim(qSoru.aciklama))>
+                    <div class="ai-kutu">
+                        <p class="ai-kutu__baslik">Yapay Zeka Çözümü:</p>
+                        <p>#replace(encodeForHTML(qSoru.aciklama),chr(10),"<br>","all")#</p>
                     </div>
                 </cfif>
+            </cfif>
 
-                <cfif len(basari)>
-                    <div class="alert #dogruMu ? 'alert-success':'alert-warning'#">
-                        <i class="bi bi-#dogruMu ? 'check':'x'#-circle"></i>#encodeForHTML(basari)#
-                    </div>
-                </cfif>
+            <cfif qCevaplar.recordCount GT 0>
+                <h2 class="goz">Çözümler · #qCevaplar.recordCount#</h2>
+                
+                <cfloop query="qCevaplar">
+                    <article class="kart">
+                        <div class="kart__govde">
+                            <div class="cozum-kart__ust">
+                                <span class="mini-avatar">#uCase(left(qCevaplar.cozenAd,2))#</span>
 
-                <cfif NOT cevapKontrol>
-                    <cfif qSoru.soranID EQ kullaniciID>
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i>Bu soru size ait. Kendi sorunuzu çözemezsiniz.
+                                <span class="cozum-kart__ad">#encodeForHTML(qCevaplar.cozenAd)#</span>
+
+                                <cfif qCevaplar.onay EQ 1>
+                                    <span class="rozet rozet--dogru">Doğru</span>
+                                <cfelseif qCevaplar.onay EQ 0>
+                                    <span class="rozet rozet--yanlis">Yanlış</span>
+                                <cfelse>
+                                    <span class="rozet">Belirsiz</span>
+                                </cfif>
+                                    
+                                <span class="cozum-kart__tarih">#dateFormat(qCevaplar.eklenmeTarihi,'dd.mm.yyyy')#</span>
+                            </div>
+                            
+                            <cfif len(trim(qCevaplar.cozumMetni))>
+                                <p class="ust-bosluk">#replace(encodeForHTML(qCevaplar.cozumMetni),chr(10),"<br>","all")#</p>
+                            </cfif>
+                            
+                            <cfif len(trim(qCevaplar.cozumResmi))>
+                                <img src="/YKSSite/assets/images/cevaplar/#encodeForHTMLAttribute(qCevaplar.cozumResmi)#"
+                                    class="cozum-gorsel" alt="Çözüm görseli">
+                            </cfif>
                         </div>
-                    <cfelse>
-                        <div class="card mb-4">
-                            <div class="card-header bg-dark text-white">
-                                <i class="bi bi-pencil"></i>Cevabınızı seçiniz.
+                
+                        <div class="kart__ayrac">
+                            <div class="eylem-seridi">
+                                <cfif qCevaplar.cozenID NEQ kullaniciID>
+                                    <form method="POST" action="/YKSSite/views/soru/begeniToggle.cfm" class="eylem-form">
+                                        <input type="hidden" name="csrf" value="SESSION.csrf">
+                                        <input type="hidden" name="hedefID" value="#qCevaplar.id#">
+                                        <input type="hidden" name="hedefTip" value="cevap">
+                                        <input type="hidden" name="geri" value="#geriURL#">
+
+                                        <button class="eylem" type="submit">
+                                            <svg class="simge"><use href="##s-begeni"></use></svg><span class="veri">#qCevaplar.begeniSayisi#</span>
+                                        </button>
+                                    </form> 
+                                <cfelse>
+                                    <svg class="simge"><use href="##s-begeni"></use></svg> <span class="veri">#qCevaplar.begeniSayisi#</span>
+                                </cfif>
+                        
+                                <button class="eylem" type="button" data-ac="yorumlar_#qCevaplar.id#" aria-expanded="false" aria-controls="yorumlar_#qCevaplar.id#">
+                                    <svg class="simge"><use href="##s-sohbet"></use></svg>Yorumlar<span class="veri">#qCevaplar.yorumSayisi#</span>
+                                </button>
+
+                                <span class="eylem-seridi__bosluk"></span>
+
+                                <cfif qCevaplar.cozenID NEQ kullaniciID>
+                                    <a class="eylem" href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=cevap&hedefID=#qCevaplar.id#" aria-label="Çözümü Şikayet Ediniz.">
+                                        <svg class="simge"><use href="##s-bayrak"></use></svg>
+                                    </a>
+                                </cfif>
                             </div>
 
-                            <div class="card-body">
-                                <form method="POST" action="?id=#soruID#">
-                                    <div class="mb-3">
-                                        <label class="form-label">Şıkkınız:</label>
+                            <div class="yorum-alani" id="yorumlar_#qCevaplar.id#" hidden>
+                                <cfif structKeyExists(ustYorumlar,val(qCevaplar.id))>
+                                    <cfloop array="#ustYorumlar[val(qCevaplar.id)]#" index="y">
+                                        <div class="yorum">
+                                            <span class="avatar">#uCase(left(y.yazar,2))#</span>
 
-                                        <div class="d-flex gap-2">
-                                            <cfloop list="A,B,C,D,E" index="sik">
-                                                <input type="radio" class="btn-check" name="kullaniciCevabi" id="cv#sik#" value="#sik#" required>
-                                                <label class="btn btn-outline-dark" for="cv#sik#">#sik#</label>
-                                            </cfloop>
+                                            <div style="flex:1;min-width:0">
+                                                <div class="yorum__ust">
+                                                    <span class="yorum__ad">#encodeForHTML(y.yazar)#</span>
+                                                    <span class="yorum__zaman">#dateFormat(y.tarih,'dd.mm.yyyy')#</span>
+                                                </div>
+
+                                                <p>#encodeForHTML(y.metin)#</p>
+
+                                                <div class="yorum__eylem">
+                                                    <button class="metin-dugme" type="button" data-ac="yanit_#y.id#" aria-expanded="false" aria-controls="yanit_#y.id#">Yanıtla</button>
+                                                            
+                                                    <a class="metin-dugme metin-dugme--tehlike" href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=yorum&hedefID=#y.id#">Şikayet Et</a>
+                                                </div>
+                                    
+                                                <cfif structKeyExists(yanitlar,y.id)>
+                                                    <cfloop array="#yanitlar[y.id]#" index="yanit">
+                                                        <div class="yorum yorum--yanit">
+                                                            <span class="mini-avatar">#uCase(left(yanit.yazar,1))#</span>
+                                                                
+                                                            <div style="flex:1;min-width:0">
+                                                                <div class="yorum__ust">
+                                                                    <span class="yorum__ad">#encodeForHTML(yanit.yazar)#</span>
+                                                                    <span class="yorum__zaman">#dateFormat(yanit.tarih,'dd.mm.yyyy')#</span>
+                                                                </div>
+                                                                            
+                                                                <p>#encodeForHTML(yanit.metin)#</p>
+                                                                            
+                                                                <div class="yorum__eylem">
+                                                                    <a class="metin-dugme metin-dugme--tehlike" href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=yorum&hedefID=#yanit.id#">Şikayet Et</a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </cfloop>
+                                                </cfif>
+
+                                                <form class="mini-form" method="POST" action="/YKSSite/views/soru/yorumEkle.cfm" id="yanit_#y.id#" hidden>
+                                                    <input type="hidden" name="cevapID" value="#qCevaplar.id#">
+                                                    <input type="hidden" name="soruID" value="#soruID#">
+                                                    <input type="hidden" name="ustYorumID" value="#y.id#">
+                                                    <input class="girdi" type="text" name="metin" maxlength="500" required placeholder="#encodeForHTMLAttribute(y.yazar)# kullanıcısına cevap veriniz..">
+                                                            
+                                                    <button class="dugme dugme--ana" type="submit">Gönder</button>
+                                                </form>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </cfloop>
+                                </cfif>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Çözüm Açıklaması:<small class="text-muted">(isteğe bağlı)</small></label>
-                                        <textarea name="cozumMetni" class="form-control" rows="4" maxlength="2000"
-                                            placeholder="Çözümünüzü açıklamak isterseniz buraya yazabilirsiniz."></textarea>
-                                    </div>
-
-                                    <div class="d-grid">
-                                        <button type="submit" name="cevapGonder" value="1" class="btn btn-dark">
-                                            <i class="bi bi-send"></i>Cevabı Paylaş
-                                        </button>
-                                    </div>
+                                <form class="mini-form" method="POST" action="/YKSSite/views/soru/yorumEkle.cfm">
+                                    <input type="hidden" name="cevapID" value="#qCevaplar.id#">
+                                    <input type="hidden" name="soruID" value="#soruID#">
+                                    <input type="hidden" name="ustYorumID" value="0">
+                                    <input class="girdi" type="text" name="metin" maxlength="500" required placeholder="Yorum yapınız.">
+                                        
+                                    <button class="dugme dugme--ana" type="submit">Gönder</button>
                                 </form>
                             </div>
                         </div>
-                    </cfif>
-                <cfelse>
-                    <div class="alert #qKontrol.onay EQ 1 ? 'alert-success':'alert-danger'#">
-                        <i class="bi bi-#qKontrol.onay EQ 1 ? 'check':'x'#-circle"></i>
-                        Sizin Cevabınız:<strong>#encodeForHTML(qKontrol.kullaniciCevabi)#</strong> -
-                        Doğru Cevap:<strong>#encodeForHTML(qSoru.dogruCevap)#</strong>
-                    </div>
+                    </article>
+                </cfloop>
+            </cfif>
+        </div>
 
-                    <cfif qSoru.sistemSoru EQ 1 AND len(trim(qSoru.aciklama))>
-                        <div class="alert alert-info mt-3 shadow-sm" style="border-left:5px solid ##0dcaf0;">
-                            <h5 class="alert-heading text-info">
-                                <i class="bi bi-robot"></i>Yapay Zeka Çözüm Açıklaması
-                            </h5>
+        <div class="yigin">
+            <section class="kart">
+                <div class="kart__baslik">Soru Bilgisi</div>
 
-                            <hr class="border-info">
-
-                            <p class="mb-0 text-dark">
-                                #replace(encodeForHTML(qSoru.aciklama),chr(10),"<br>","all")#
-                            </p>
-                        </div>
-                    </cfif>
-                </cfif>
-
-                <cfif qCevaplar.recordCount GT 0>
-                    <h5 class="mb-3"><i class="bi bi-chat-left-text"></i>Çözümler(#qCevaplar.recordCount#)</h5>
-
-                    <cfloop query="qCevaplar">
-                        <div class="card mb-3">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center gap-2">
-                                    <img src="#application.avatarURL##urlEncodedFormat(qCevaplar.cozenAd)#"
-                                        class="rounded-circle" width="28" height="28" alt="">
-
-                                    <strong>#encodeForHTML(qCevaplar.cozenAd)#</strong>
-
-                                    <span class="badge #qCevaplar.onay EQ 1 ? 'bg-success':qCevaplar.onay EQ 0 ? 'bg-danger':'bg-secondary'#">
-                                        #qCevaplar.onay EQ 1 ? 'Doğru':qCevaplar.onay EQ 0 ? 'Yanlış':'Belirsiz'#
-                                    </span>
-                                </div>
-
-                                <small class="text-muted">#dateFormat(qCevaplar.eklenmeTarihi,'dd.mm.yyyy')#</small>
-                            </div>
-
-                            <div class="card-body">
-                                <cfif len(trim(qCevaplar.cozumMetni))>
-                                    <p>#replace(encodeForHTML(qCevaplar.cozumMetni),chr(10),"<br>","all")#</p>
-                                </cfif>
-
-                                <cfif len(trim(qCevaplar.cozumResmi))>
-                                    <img src="/YKSSite/assets/images/cevaplar/#encodeForHTMLAttribute(qCevaplar.cozumResmi)#"
-                                        class="img-fluid rounded mb-2" alt="Çözüm Görseli">
-                                </cfif>
-
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <div class="d-flex gap-2">
-                                        <cfif qCevaplar.cozenID NEQ kullaniciID>
-                                            <a href="/YKSSite/views/soru/begeniToggle.cfm?hedefID=#qCevaplar.id#&hedefTip=cevap&geri=#geriURL#" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-hand-thumbs-up"></i>#qCevaplar.begeniSayisi#
-                                            </a>
-
-                                            <a href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=cevap&hedefID=#qCevaplar.id#" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-flag"></i>Çözümü Şikayet Et
-                                            </a>
-                                        <cfelse>
-                                            <span class="btn btn-sm btn-outline-secondary disabled">
-                                                <i class="bi bi-hand-thumbs-up"></i>#qCevaplar.begeniSayisi#
-                                            </span>
-                                        </cfif>
-                                    </div>
-
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="yorumlariGoster(#qCevaplar.id#)">
-                                        <i class="bi bi-chat"></i>Yorumlar(#qCevaplar.yorumSayisi#)
-                                    </button>
-                                </div>
-
-                                <div id="yorumlar_#qCevaplar.id#" class="mt-3 d-none">
-                                    <cfif structKeyExists(ustYorumlar,val(qCevaplar.id))>
-                                        <cfloop array="#ustYorumlar[val(qCevaplar.id)]#" index="y">
-                                            <div class="d-flex gap-2 mb-2">
-                                                <img src="#application.avatarURL##urlEncodedFormat(y.yazar)#"
-                                                    class="rounded-circle flex-shrink-0" width="24" height="24" alt="">
-
-                                                <div class="bg-light rounded p-2 flex-grow-1">
-                                                    <div class="d-flex justify-content-between">
-                                                        <small class="fw-bold">#encodeForHTML(y.yazar)#</small>
-                                                        <small class="text-muted">#dateFormat(y.tarih,'dd.mm.yyyy')#</small>
-                                                    </div>
-
-                                                    <p class="mb-1 small">#encodeForHTML(y.metin)#</p>
-
-                                                    <div class="d-flex gap-3">
-                                                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="yanitAc(#y.id#)">
-                                                            <small><i class="bi bi-reply"></i>Yanıtla</small>
-                                                        </button>
-
-                                                        <a href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=yorum&hedefID=#y.id#" class="text-danger text-decoration-none">
-                                                            <small><i class="bi bi-flag"></i>Şikayet Et</small>
-                                                        </a>
-                                                    </div>
-
-                                                    <cfif structKeyExists(yanitlar,y.id)>
-                                                        <cfloop array="#yanitlar[y.id]#" index="yanit">
-                                                            <div class="d-flex gap-2 mt-2 ms-3 border-start ps-2">
-                                                                <img src="#application.avatarURL##urlEncodedFormat(yanit.yazar)#"
-                                                                    class="rounded-circle flex-shrink-0" width="20" height="20" alt="">
-
-                                                                <div class="flex-grow-1">
-                                                                    <div class="d-flex justify-content-between">
-                                                                        <small class="fw-bold">#encodeForHTML(yanit.yazar)#</small>
-                                                                        <small class="text-muted">#dateFormat(yanit.tarih,'dd.mm.yyyy')#</small>
-                                                                    </div>
-
-                                                                    <p class="mb-1 small">#encodeForHTML(yanit.metin)#</p>
-
-                                                                    <a href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=yorum&hedefID=#yanit.id#" class="text-danger text-decoration-none">
-                                                                        <small><i class="bi bi-flag"></i>Şikayet Et</small>
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        </cfloop>
-                                                    </cfif>
-
-                                                    <form method="POST" action="/YKSSite/views/soru/yorumEkle.cfm" id="yanit_#y.id#" class="d-none mt-2">
-                                                        <input type="hidden" name="cevapID" value="#qCevaplar.id#">
-                                                        <input type="hidden" name="soruID" value="#soruID#">
-                                                        <input type="hidden" name="ustYorumID" value="#y.id#">
-
-                                                        <div class="input-group input-group-sm">
-                                                            <input type="text" name="metin" class="form-control"
-                                                                placeholder="#encodeForHTMLAttribute(y.yazar)# kullanıcısına yanıt veriniz."
-                                                                required maxlength="500">
-
-                                                            <button type="submit" class="btn btn-dark">
-                                                                <i class="bi bi-send"></i>
-                                                            </button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </cfloop>
-                                    </cfif>
-
-                                    <form method="POST" action="/YKSSite/views/soru/yorumEkle.cfm">
-                                        <input type="hidden" name="cevapID" value="#qCevaplar.id#">
-                                        <input type="hidden" name="soruID" value="#soruID#">
-                                        <input type="hidden" name="ustYorumID" value="0">
-
-                                        <div class="input-group mt-2">
-                                            <input type="text" name="metin" class="form-control form-control-sm"
-                                                placeholder="Yorum yazınız." required maxlength="500">
-
-                                            <button type="submit" class="btn btn-dark btn-sm">
-                                                <i class="bi bi-send"></i>Yorum Paylaş
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </cfloop>
-                </cfif>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card mb-3">
-                    <div class="card-header bg-dark text-white">
-                        <i class="bi bi-info-circle"></i>Soru Bilgisi
-                    </div>
-
-                    <div class="card-body">
-                        <p class="mb-1"><strong>Alan:</strong>#encodeForHTML(qSoru.alanAd)#</p>
-                        <p class="mb-1"><strong>Ders:</strong>#encodeForHTML(qSoru.dersAd)#</p>
-                        <p class="mb-1"><strong>Soran:</strong>#encodeForHTML(qSoru.soranAd)#</p>
-                        <p class="mb-1"><strong>Tarih:</strong>#dateFormat(qSoru.eklenmeTarihi,'dd.mm.yyyy')#</p>
-                        <p class="mb-0"><strong>Görüntülenme:</strong>#qSoru.goruntulenmeSayisi#</p>
-                    </div>
+                <div class="kart__govde">
+                    <dl class="bilgi-liste">
+                        <div><dt>Alan:</dt><dd>#encodeForHTML(qSoru.alanAd)#</dd></div>
+                        <div><dt>Ders:</dt><dd>#encodeForHTML(qSoru.dersAd)#</dd></div>
+                        <div><dt>Soran:</dt><dd>#encodeForHTML(qSoru.soranAd)#</dd></div>
+                        <div><dt>Tarih:</dt><dd class="veri">#dateFormat(qSoru.eklenmeTarihi,'dd.mm.yyyy')#</dd></div>
+                        <div><dt>Görüntülenme:</dt><dd class="veri">#qSoru.goruntulenmeSayisi#</dd></div>
+                    </dl>
                 </div>
+            </section>
 
-                <cfif qSoru.soranID NEQ kullaniciID>
-                    <div class="d-grid">
-                        <a href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=soru&hedefID=#soruID#" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-flag"></i>Şikayet Et
-                        </a>
+            <cfif aiCozumGoster>
+                <button class="dugme dugme--ikincil dugme--tam" type="button" id="aiAcDugme" data-pencere-ac="aiPencere" data-soruid="#qSoru.id#">Yapay zeka ile çöz</button>
+            </cfif>
+
+            <cfif qSoru.soranID NEQ kullaniciID>
+                <a class="dugme dugme--tehlike dugme--tam" href="/YKSSite/views/sikayet/sikayet.cfm?hedefTip=soru&hedefID=#soruID#">Soruyu şikayet ediniz</a>
+            </cfif>
+
+            <cfif val(SESSION.rol) GTE 2>
+                <section class="kart mod-kutu">
+                    <div class="kart__baslik">Moderatör işlemi</div>
+
+                    <div class="kart__govde">
+                        <cfif len(cevapHata)>
+                            <div class="bildirim bildirim--hata" role="alert">#encodeForHTML(cevapHata)#</div>
+                        </cfif>
+
+                        <cfif len(cevapBasari)>
+                            <div class="bildirim bildirim--basarili" role="status">#encodeForHTML(cevapBasari)#</div>
+                        </cfif>
+
+                        <form method="POST" action="?id=#soruID#">
+                            <div class="alan ust-bosluk">
+                                <label for="yeniDogruCevap">Cevap Anahtarı:</label>
+                                <select class="secim" name="yeniDogruCevap" id="yeniDogruCevap" required>
+                                    <cfloop list="A,B,C,D,E" index="s">
+                                        <option value="#s#" #compareNoCase(s,qSoru.dogruCevap) EQ 0 ? "selected":""#>#s#</option>
+                                    </cfloop>
+                                </select>
+        
+                                <span class="alan__ipucu">Mevcut cevap anahtarı:#encodeForHTML(qSoru.dogruCevap)#.Değiştirirseniz tüm cevaplar ve puanlar yeniden hesaplanır.</span>
+                            </div>
+                        
+                            <button class="dugme dugme--ana dugme--tam" type="submit" name="cevapDuzelt" value="1" onclick="return confirm('Cevap anahtarı değişecek,tüm kullanıcı cevapları ve puanları yeniden hesaplanacak. Emin misin?')">Kaydet</button>
+                        </form>
                     </div>
-                </cfif>
-
-                <cfif aiCozumGoster>
-                    <div class="d-grid mt-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="##aiCozModal" data-soruid="#qSoru.id#">
-                            <i class="bi bi-robot"></i>AI ile Çöz
-                        </button>
-                    </div>
-                </cfif>
-
-                <cfif val(SESSION.rol) GTE 2>
-                    <div class="card mt-3 border-warning">
-                        <div class="card-header bg-warning text-dark">
-                            <i class="bi bi-tools"></i>Moderatör İşlemi
-                        </div>
-
-                        <div class="card-body">
-                            <cfif len(cevapHata)>
-                                <div class="alert alert-danger py-2 small mb-2">#encodeForHTML(cevapHata)#</div>
-                            </cfif>
-
-                            <cfif len(cevapBasari)>
-                                <div class="alert alert-success py-2 small mb-2">#encodeForHTML(cevapBasari)#</div>
-                            </cfif>
-
-                            <form method="POST" action="?id=#soruID#">
-                                <label class="form-label small mb-1">Cevap anahtarını düzelt:</label>
-
-                                <div class="input-group input-group-sm">
-                                    <select name="yeniDogruCevap" class="form-select" required>
-                                        <cfloop list="A,B,C,D,E" index="s">
-                                            <option value="#s#" #compareNoCase(s,qSoru.dogruCevap) EQ 0 ? 'selected':''#>#s#</option>
-                                        </cfloop>
-                                    </select>
-
-                                    <button type="submit" name="cevapDuzelt" value="1" class="btn btn-warning"
-                                        onclick="return confirm('Cevap anahtarı değişecek, tüm kullanıcı cevapları ve puanları yeniden hesaplanacak. Emin misiniz?')">
-                                        Kaydet
-                                    </button>
-                                </div>
-
-                                <small class="text-muted">Mevcut:<strong>#encodeForHTML(qSoru.dogruCevap)#</strong></small>
-                            </form>
-                        </div>
-                    </div>
-                </cfif>
-            </div>
+                </section>
+            </cfif>
         </div>
     </div>
 </cfoutput>
+
+<cfif aiCozumGoster>
+    <dialog class="pencere pencere--genis" id="aiPencere">
+        <div class="kart__baslik">
+            <span>Yapay Zeka Çözümü</span>
+
+            <button class="simge-dugme" type="button" data-pencere-kapat aria-label="Kapat">✕</button>
+        </div>
+
+        <div class="pencere__govde pencere__kaydir" id="aiCozumIcerik">
+            <div class="yukleniyor">
+                <span class="donen" aria-hidden="true"></span>
+
+                <p>Çözüm hazırlanıyor,lütfen bekleyiniz.</p>
+            </div>
+        </div> 
+    </dialog>
+</cfif>
 
 <cfinclude template="/YKSSite/views/includes/altBilgi.cfm">

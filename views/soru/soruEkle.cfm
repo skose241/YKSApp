@@ -1,5 +1,5 @@
-﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
-<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfset kullaniciID=val(SESSION.kullaniciID)>
 
@@ -50,12 +50,15 @@
         <cfset hata="Günlük soru ekleme sınırına ulaştınız.">
     <cfelse>
         <cftry>
-            <cfset resimYolu=expandPath("/YKSSite/assets/images/sorular/")>
-            <cfset izinliFormat="jpg,jpeg,png,webp">
+            <cfset geciciYol=expandPath("/YKSSite/gecici/")>
+
+            <cfif NOT directoryExists(geciciYol)>
+                <cfdirectory action="create" directory="#geciciYol#">
+            </cfif>
 
             <cffile action="upload"
                     filefield="soruResmi"
-                    destination="#resimYolu#"
+                    destination="#geciciYol#"
                     nameconflict="makeunique"
                     result="yuklenenDosya">
 
@@ -174,7 +177,7 @@
 
         const ilk=document.createElement('option');
         ilk.value='0';
-        ilk.textContent='Ders Seçiniz.';
+        ilk.textContent===alanID==='0' ? "Önce Alan Seçiniz.":"Ders Seçiniz.";
         dersSec.appendChild(ilk);
 
         Object.entries(dersler).forEach(([id,ders])=>{
@@ -189,82 +192,80 @@
 </script>
 
 <cfoutput>
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-7">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white text-center">
-                        <h4 class="mb-0"><i class="bi bi-plus-circle"></i>Soru Ekle</h4>
+    <div class="dar dar--genis">
+        <section class="kart">
+            <div class="kart__baslik">Soru Ekle</div>
+            
+            <div class="kart__govde">
+                <cfif len(hata)>
+                    <div class="bildirim bildirim--hata" role="alert">#encodeForHTML(hata)#</div>
+                </cfif>
+
+                <cfif len(basari)>
+                    <div class="bildirim bildirim--basarili" role="status">
+                        #encodeForHTML(basari)#
+                        <a class="bag" href="/YKSSite/anaSayfa.cfm">Ana sayfaya dön</a>
+                    </div>
+                </cfif>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="alan ust-bosluk">
+                        <label for="alanSec">Alan</label>
+
+                        <select class="secim" id="alanSec" onchange="dersFiltrele(this.value)">
+                            <option value="0">Alan seç</option>
+                            <cfloop query="qAlan">
+                                <option value="#qAlan.id#">#encodeForHTML(qAlan.ad)#</option>
+                            </cfloop>
+                        </select>
                     </div>
 
-                    <div class="card-body">
-                        <cfif len(hata)>
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
-                            </div>
-                        </cfif>
-
-                        <cfif len(basari)>
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle"></i>#encodeForHTML(basari)#
-                            </div>
-                        </cfif>
-
-                        <form method="POST" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label class="form-label">Alan:</label>
-
-                                <select id="alanSec" class="form-select" onchange="dersFiltrele(this.value)">
-                                    <option value="0">Alan Seçiniz.</option>
-                                    <cfloop query="qAlan">
-                                        <option value="#qAlan.id#">#encodeForHTML(qAlan.ad)#</option>
-                                    </cfloop>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Ders:</label>
-
-                                <select name="dersID" id="dersSec" class="form-select" required>
-                                    <option value="0">Önce alan seçiniz.</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Soru Resmi:</label>
-                                <input type="file" name="soruResmi" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
-                                <small class="text-muted">JPG,JPEG,PNG veya WEBP formatında,en fazla 5 MB olmalıdır.</small>
-
-                                <div id="onizlemeDiv" class="mt-3 text-center d-none">
-                                    <p class="text-muted small mb-1">Seçilen Resim Önizlemesi</p>
-                                    <img id="onizleme" src="" alt="Soru Önizleme"
-                                        class="img-fluid rounded border shadow-sm" style="max-height:300px;">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Doğru Cevap:</label>
-
-                                <div class="d-flex gap-2">
-                                    <cfloop list="A,B,C,D,E" index="sik">
-                                        <input type="radio" class="btn-check" name="dogruCevap" id="sik#sik#" value="#sik#" required>
-                                        <label class="btn btn-outline-dark" for="sik#sik#">#sik#</label>
-                                    </cfloop>
-                                </div>
-
-                                <small class="text-muted">Doğru cevabı dikkatle seçiniz. Hatalı seçim moderatör tarafından düzeltilir.</small>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" name="soruEkle" value="1" class="btn btn-dark">
-                                    <i class="bi bi-cloud-upload"></i>Soruyu Yükle
-                                </button>
-                            </div>
-                        </form>
+                    <div class="alan">
+                        <label for="dersSec">Ders:</label>
+                        <select class="secim" name="dersID" id="dersSec" required>
+                            <option value="0">Önce alan seçiniz.</option>
+                        </select>
                     </div>
-                </div>
+
+                    <div class="alan">
+                        <label for="soruResmi">Soru Resmi:</label>
+                        <div class="dosya-alan">
+                            <input type="file" name="soruResmi" id="soruResmi" accept=".jpg,.jpeg,.png,.webp" required>
+                            <span class="dosya-alan__simge" aria-hidden="true"><svg class="simge simge--buyuk"><use href="##s-yukle"></use></svg></span>
+                            <span class="dosya-alan__baslik">Görsel seçiniz veya buraya sürükleyiniz.</span>
+                            <span class="dosya-alan__ipucu">JPG,PNG veya WEBP formatı olmalıdır·En fazla 5 MB boyut sınırı.</span>
+                        </div>
+                        
+                        <div class="onizleme" id="onizlemeKutu" hidden>
+                            <img src=""
+                                class="onizleme__resim" id="onizleme" alt="Seçilen görselin önizlemesi">
+                            <span class="onizleme__ad" id="onizlemeAd"></span>
+                        </div>
+                    </div>
+
+                    <div class="alan">
+                        <label>Doğru Cevap:</label>
+                        
+                        <div class="siklar siklar--satir" role="radiogroup" aria-label="Doğru cevap">
+                            <cfloop list="A,B,C,D,E" index="sik">
+                                <label class="sik sik--sade">
+                                    <input type="radio" name="dogruCevap" value="#sik#" required>
+                                    <span class="optik" aria-hidden="true">#sik#</span>
+                                    <span class="gizli-metin">#sik# şıkkı</span>
+                                </label>
+                            </cfloop>
+                        </div>
+                        
+                        <span class="alan__ipucu">Doğru cevabı düzgün giriniz.Olası bir yanlışlıkta,eklenen puanlar daha sonradan değiştirilecektir.</span>
+                    </div>
+                    <button class="dugme dugme--ana dugme--tam" type="submit" name="soruEkle" value="1">Soruyu Yükle</button>
+                </form>
             </div>
-        </div>
+            
+            <div class="kart__ayrac">
+                <p class="sessiz">Eklediğiniz her bir soru moderatör onayından sonra yayına girer.Onaylanan her soru 3 XP kazandırır,günlük sınır 20 sorudur.</p>
+            </div>
+        </section>
     </div>
 </cfoutput>
 

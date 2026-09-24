@@ -29,7 +29,7 @@
     <cfif kullaniciAd EQ "">
         <cfset hata="Lütfen kullanıcı adınızı giriniz.">
     <cfelseif SESSION.sifreDeneme GTE 5>
-        <cfset hata="Çok fazla deneme yaptınız. Lütfen 15 dakika sonra tekrar deneyiniz.">
+        <cfset hata="Çok fazla deneme yaptınız.Lütfen 15 dakika sonra tekrar deneyiniz.">
     <cfelse>
         <cfquery name="qKullanici" datasource="DSN">
             SELECT k.id,k.ad,g.soruMetni
@@ -73,9 +73,10 @@
         <cfset adim=2>
         <cfset gizliSoru=qSoru.soruMetni>
     <cfelseif SESSION.sifreDeneme GTE 5>
-        <cfset hata="Çok fazla deneme yaptınız. Lütfen 15 dakika sonra tekrar deneyiniz.">
+        <cfset hata="Çok fazla deneme yaptınız.Lütfen 15 dakika sonra tekrar deneyiniz.">
         <cfset adim=1>
     <cfelse>
+        
         <cfset cevapHash=hash(gizliCevap,"SHA-256")>
 
         <cfquery name="qKontrol" datasource="DSN">
@@ -112,13 +113,10 @@
     <cfset yeniSifreTekrar=trim(form.yeniSifreTekrar)>
     <cfset gelenKod=trim(form.dogrulamaKodu)>
 
-    <cfset kodGecerli=structKeyExists(SESSION,"sifreKodu")
-        AND len(SESSION.sifreKodu)
-        AND compare(gelenKod,SESSION.sifreKodu) EQ 0
-        AND dateDiff("n",SESSION.sifreKoduZaman,now()) LT 15>
+    <cfset kodGecerli=structKeyExists(SESSION,"sifreKodu") AND len(SESSION.sifreKodu) AND compare(gelenKod,SESSION.sifreKodu) EQ 0 AND dateDiff("n",SESSION.sifreKoduZaman,now()) LT 15>
 
     <cfif NOT kodGecerli>
-        <cfset hata="Oturum süreniz doldu. Lütfen işlemi baştan başlatınız.">
+        <cfset hata="Oturum süreniz dolmuştur.Lütfen işlemi baştan başlatınız.">
         <cfset adim=1>
     <cfelseif yeniSifre EQ "" OR yeniSifreTekrar EQ "">
         <cfset hata="Lütfen tüm alanları doldurunuz.">
@@ -126,7 +124,7 @@
         <cfset kullaniciAd=SESSION.sifreKullanici>
         <cfset dogrulamaKodu=SESSION.sifreKodu>
     <cfelseif len(yeniSifre) LT 6>
-        <cfset hata="Şifre en az 6 haneli olmalıdır.">
+        <cfset hata="Şifreniz en az 6 haneli olmalıdır.">
         <cfset adim=3>
         <cfset kullaniciAd=SESSION.sifreKullanici>
         <cfset dogrulamaKodu=SESSION.sifreKodu>
@@ -174,105 +172,81 @@
 </cfif>
 
 <cfoutput>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white text-center">
-                        <h4 class="mb-0"><i class="bi bi-key"></i>Şifre Sıfırlama</h4>
+    <div class="dar">
+        <section class="kart">
+            <div class="kart__baslik">Şifre Sıfırlama</div>
+                <div class="kart__govde">
+                    <div class="adimlar">
+                        <span class="adim #adim EQ 1 ? "adim--aktif" : "adim--tamam"#">Kullanıcı Adı:</span>
+                        <span class="adim #adim EQ 2 ? "adim--aktif" : adim GT 2 ? "adim--tamam" : ""#">Gizli Soru:</span>
+                        <span class="adim #adim EQ 3 ? "adim--aktif" : ""#">Yeni Şifre:</span>
                     </div>
 
-                    <div class="card-body">
-                        <cfif len(hata)>
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
-                            </div>
-                        </cfif>
+                    <cfif len(hata)>
+                        <div class="bildirim bildirim--hata ust-bosluk" role="alert">#encodeForHTML(hata)#</div>
+                    </cfif>
 
-                        <cfif len(basari)>
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle"></i>#encodeForHTML(basari)#
-                                <a href="/YKSSite/views/kimlik/giris.cfm" class="alert-link">Giriş Yap</a>
-                            </div>
-                        </cfif>
-
-                        <div class="d-flex justify-content-center mb-4 gap-2">
-                            <span class="badge #adim EQ 1 ? 'bg-dark':'bg-secondary'#">Kullanıcı Adı</span>
-                            <span class="badge #adim EQ 2 ? 'bg-dark':'bg-secondary'#">Gizli Soru</span>
-                            <span class="badge #adim EQ 3 ? 'bg-dark':'bg-secondary'#">Yeni Şifre</span>
+                    <cfif len(basari)>
+                        <div class="bildirim bildirim--basarili ust-bosluk" role="status">#encodeForHTML(basari)#
+                            <a class="bag" href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a>
                         </div>
+                    </cfif>
 
-                        <cfif adim EQ 1 AND NOT len(basari)>
-                            <form method="POST">
-                                <div class="mb-3">
-                                    <label class="form-label">Kullanıcı Adınız:</label>
-                                    <input type="text" name="kullaniciAd" class="form-control" maxlength="15" required>
-                                </div>
+                    <cfif adim EQ 1 AND NOT len(basari)>
+                        <form method="POST">
+                            <div class="alan ust-bosluk">
+                                <label for="kullaniciAd">Kullanıcı Adı:</label>
+                                <input class="girdi" type="text" name="kullaniciAd" id="kullaniciAd" maxlength="15" autocapitalize="none" required>
+                            </div>
+                            
+                            <button class="dugme dugme--ana dugme--tam" type="submit" name="adim1" value="1">Devam Et</button>
+                        </form>
+                    </cfif>
 
-                                <div class="d-grid">
-                                    <button type="submit" name="adim1" value="1" class="btn btn-dark">
-                                        <i class="bi bi-arrow-right"></i>Devam Et
-                                    </button>
-                                </div>
-                            </form>
-                        </cfif>
+                    <cfif adim EQ 2>
+                        <form method="POST">
+                            <input type="hidden" name="kullaniciAd" value="#encodeForHTMLAttribute(kullaniciAd)#">
+                            
+                            <div class="alan ust-bosluk">
+                                <label>Gizli soru</label>
+                                <p class="sabit-metin">#encodeForHTML(gizliSoru)#</p>
+                            </div>
 
-                        <cfif adim EQ 2>
-                            <form method="POST">
-                                <input type="hidden" name="kullaniciAd" value="#encodeForHTMLAttribute(kullaniciAd)#">
+                            <div class="alan">
+                                <label for="gizliCevap">Cevap:</label>
+                                <input class="girdi" type="text" name="gizliCevap" id="gizliCevap" maxlength="100" required>
+                                <span class="alan__ipucu">Büyük-küçük harf sorunu yaşanmayacaktır.</span>
+                            </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Gizli Soru:</label>
-                                    <p class="form-control-plaintext fw-bold">#encodeForHTML(gizliSoru)#</p>
-                                </div>
+                            <button class="dugme dugme--ana dugme--tam" type="submit" name="adim2" value="1">Devam Et</button>
+                        </form>
+                    </cfif>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Cevabınız:</label>
-                                    <input type="text" name="gizliCevap" class="form-control" maxlength="100" required>
-                                    <small class="text-muted">Büyük/Küçük harf sıkıntısı yaşanmayacaktır.</small>
-                                </div>
+                    <cfif adim EQ 3>
+                        <form method="POST">
+                            <input type="hidden" name="dogrulamaKodu" value="#encodeForHTMLAttribute(dogrulamaKodu)#">
+                            
+                            <div class="alan ust-bosluk">
+                                <label for="yeniSifre">Yeni Şifre:</label>
+                                <input class="girdi" type="password" name="yeniSifre" id="yeniSifre" minlength="6" autocomplete="new-password" required>
+                                <span class="alan__ipucu">Şifreniz en az 6 karakter uzunluğunda olmalıdır.</span>
+                            </div>
+                        
+                            <div class="alan">
+                                <label for="yeniSifreTekrar">Yeni Şifre Tekrarı:</label>
+                                <input class="girdi" type="password" name="yeniSifreTekrar" id="yeniSifreTekrar" minlength="6" autocomplete="new-password" required>
+                            </div>
+            
+                            <button class="dugme dugme--ana dugme--tam" type="submit" name="adim3" value="1">Şifremi Güncelle</button>
+                        </form>
+                    </cfif>
 
-                                <div class="d-grid">
-                                    <button type="submit" name="adim2" value="1" class="btn btn-dark">
-                                        <i class="bi bi-arrow-right"></i>Devam Et
-                                    </button>
-                                </div>
-                            </form>
-                        </cfif>
+                    <p class="ayrac-metin">veya</p>
 
-                        <cfif adim EQ 3>
-                            <form method="POST">
-                                <input type="hidden" name="dogrulamaKodu" value="#encodeForHTMLAttribute(dogrulamaKodu)#">
-
-                                <div class="mb-3">
-                                    <label class="form-label">Yeni Şifre:</label>
-                                    <input type="password" name="yeniSifre" class="form-control" minlength="6" autocomplete="new-password" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Yeni Şifre Tekrarı:</label>
-                                    <input type="password" name="yeniSifreTekrar" class="form-control" minlength="6" autocomplete="new-password" required>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button type="submit" name="adim3" value="1" class="btn btn-dark">
-                                        <i class="bi bi-check-lg"></i>Şifremi Güncelle
-                                    </button>
-                                </div>
-                            </form>
-                        </cfif>
-
-                        <hr>
-
-                        <div class="text-center">
-                            <small>
-                                <a href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a>
-                            </small>
-                        </div>
-                    </div>
+                    <p class="sessiz" style="text-align:center"><a class="bag" href="/YKSSite/views/kimlik/giris.cfm">Giriş sayfasına dön</a></p>
                 </div>
-            </div>
-        </div>
+            </div>    
+        </section>
     </div>
 </cfoutput>
 

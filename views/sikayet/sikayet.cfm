@@ -1,5 +1,5 @@
-﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
-<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfif NOT structKeyExists(url,"hedefTip") OR NOT structKeyExists(url,"hedefID") OR NOT isNumeric(url.hedefID) OR val(url.hedefID) LTE 0>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
@@ -69,7 +69,6 @@
 </cfquery>
 
 <cfset sikayet=qKontrol.recordCount GT 0>
-
 <cfset sebep="">
 
 <cfif hedefTip EQ "soru">
@@ -102,14 +101,14 @@
     </cfquery>
 
     <cfif sebep EQ "">
-        <cfset hata="Lütfen bir sebep seçiniz.">
+        <cfset hata="Lütfen şikayet sebebinizi seçiniz.">
     <cfelseif NOT listFind(sebep,neden)>
         <cfset hata="Geçersiz sebep seçimi.">
     <cfelseif qGunluk.adet GTE 20>
-        <cfset hata="Günlük şikayet sınırına ulaştınız.">
+        <cfset hata="Günlük şikayet sınırına(20) ulaştınız.">
     <cfelse>
         <cftry>
-            <cfset tamSebep=left(neden & (len(aciklama) ? " - " & aciklama:""),255)>
+            <cfset tamSebep=left(neden & (len(aciklama) ? "-" & aciklama:""),255)>
 
             <cfquery datasource="DSN">
                 INSERT INTO Sikayet(sikayetciID,hedefTip,hedefID,sebep,durum,tarih)
@@ -123,96 +122,68 @@
                 )
             </cfquery>
 
-            <cfset basari="Şikayetiniz alındı,moderatörler tarafından incelenecektir.">
+            <cfset basari="Şikayetiniz başarıyla alındı,moderatörler tarafından incelenecektir.">
             <cfset sikayet=true>
 
             <cfcatch type="any">
-                <cfset hata="Şikayet gönderilirken bir hata oluştu.">
+                <cfset hata="Şikayetiniz gönderilirken bir hata oluştu.">
             </cfcatch>
         </cftry>
     </cfif>
 </cfif>
 
 <cfoutput>
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-flag"></i>Şikayet Et</h5>
-                    </div>
+    <div class="dar dar--genis">
+        <section class="kart">
+            <div class="kart__baslik">Şikayet Et</div>
 
-                    <div class="card-body">
-                        <div class="alert alert-secondary mb-3">
-                            <small>
-                                <strong>Şikayet Edilen:</strong>
-                                #hedefAd# ###hedefID#
-                            </small>
+            <div class="kart__govde">
+                <p class="hedef-kutu">
+                    <strong>Şikayet Edilen:</strong> #encodeForHTML(hedefAd)# <span class="veri">###hedefID#</span>
+                </p>
+
+                <cfif len(hata)>
+                    <div class="bildirim bildirim--hata" role="alert">#encodeForHTML(hata)#</div>
+                </cfif>
+
+                <cfif len(basari)>
+                    <div class="bildirim bildirim--basarili" role="status">#encodeForHTML(basari)#</div>
+                </cfif>
+
+                <cfif kendiIcerik>
+                    <div class="bildirim" role="status">Kendi içeriğinizi şikayet edemezsiniz.</div>
+                <cfelseif sikayet AND NOT len(basari)>
+                    <div class="bildirim" role="status">Bu içeriği daha önce zaten daha önce şikayet ettiniz. Şikayetiniz moderatörler tarafından incelenmektedir.</div>
+                </cfif>
+
+                <cfif NOT sikayet AND NOT kendiIcerik>
+                    <form method="POST" action="?hedefTip=#encodeForURL(hedefTip)#&hedefID=#hedefID#">
+                        <div class="alan ust-bosluk">
+                            <label for="neden">Şikayet Sebebiniz:</label>
+                            
+                            <select class="secim" name="neden" id="neden" required>
+                                <option value="">Sebep Seçiniz:</option>
+                                <cfloop list="#sebep#" index="s">
+                                    <option value="#encodeForHTMLAttribute(s)#">#encodeForHTML(s)#</option>
+                                </cfloop>
+                            </select>
                         </div>
 
-                        <cfif len(hata)>
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
-                            </div>
-                        </cfif>
-
-                        <cfif len(basari)>
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle"></i>#encodeForHTML(basari)#
-                            </div>
-                        </cfif>
-
-                        <cfif kendiIcerik>
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                Kendi içeriğinizi şikayet edemezsiniz.
-                            </div>
-                        <cfelseif sikayet AND NOT len(basari)>
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                Bu içeriği daha önceden şikayet ettiniz.
-                            </div>
-                        </cfif>
-
-                        <cfif NOT sikayet AND NOT kendiIcerik>
-                            <form method="POST" action="?hedefTip=#encodeForURL(hedefTip)#&hedefID=#hedefID#">
-                                <div class="mb-3">
-                                    <label class="form-label">Şikayet Sebebi:</label>
-                                    <select name="neden" class="form-select" required>
-                                        <option value="">Sebep Seçiniz.</option>
-                                        <cfloop list="#sebep#" index="s">
-                                            <option value="#encodeForHTMLAttribute(s)#">#encodeForHTML(s)#</option>
-                                        </cfloop>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        Açıklama:
-                                        <small class="text-muted">(isteğe bağlı)</small>
-                                    </label>
-
-                                    <textarea name="aciklama" class="form-control" rows="3" maxlength="200" placeholder="Eklemek istediğiniz bir şey varsa yazabilirsiniz."></textarea>
-                                    <small class="text-muted">Maksimum 200 karakter</small>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button type="submit" name="sikayetGonder" value="1" class="btn btn-danger">
-                                        <i class="bi bi-flag"></i>Şikayeti Gönder
-                                    </button>
-                                </div>
-                            </form>
-                        </cfif>
-
-                        <div class="text-center mt-3">
-                            <a href="javascript:history.back()" class="text-muted small">
-                                <i class="bi bi-arrow-left"></i>Geri Dön
-                            </a>
+                        <div class="alan">
+                            <label for="aciklama">Açıklama<span class="sessiz">(isteğe bağlı):</span></label>
+                            <textarea class="girdi" name="aciklama" id="aciklama" rows="3" maxlength="200" placeholder="Eklemek istediğiniz bir şey varsa yazabilirsiniz."></textarea>
+                            <span class="alan__ipucu">En fazla 200 karakter.</span>
                         </div>
-                    </div>
-                </div>
+
+                        <button class="dugme dugme--tehlike dugme--tam" type="submit" name="sikayetGonder" value="1">Şikayeti Gönder</button>
+                    </form>
+                </cfif>
+
+                <p class="ayrac-metin">veya</p>
+
+                <p class="sessiz" style="text-align:center"><a class="bag" href="javascript:history.back()">Geri Dön</a></p>
             </div>
-        </div>
+        </section>
     </div>
 </cfoutput>
 

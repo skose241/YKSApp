@@ -90,7 +90,7 @@
     --Düz metin kısımlarında LaTeX kullanma,LaTeX sadece formüllerde kullanılacak çünkü.
     --Kod bloğu(uç backtick) kullanma. Kalın yazı için çift yıldız kullanma.
 
-    Yanıtını,'Doğru Cevap:' ve 'Açıklama:' ile başlayan satırlar halinde ver. Başka da hiçbir şey yazma.
+    Yanıtını,'Doğru Cevap:' ve 'Açıklama:' ile başlayan satırlar halinde ver.Başka da hiçbir şey yazma.
     Uyarı:'Doğru Cevap' ve 'Açıklama' satırlarını asla atlamadan çözüm işlemini tamamla.">
 
 <cfset gorselMi=len(trim(qSoru.soruResmi)) GT 0>
@@ -104,10 +104,10 @@
 
     <cfset istekPrompt="Ekteki görselde bir #qSoru.dersAd# sorusu var.
 
-    ÖNEMLİ:Görseldeki soruyu ve şıkları dikkatlice oku. SADECE görselde yazan soruyu çöz. Lütfen kendi kafandan soru uydurup farklı bir soru çözme.
+    ÖNEMLİ:Görseldeki soruyu ve şıkları dikkatlice oku. SADECE görselde yazan soruyu çöz.Lütfen kendi kafandan soru uydurup farklı bir soru çözme.
     Görseli okuyamıyorsan veya soru net okunabilir halde değilse çözüm üretme,sadece 'Görsel Okunamıyor.' yaz.
 
-    Açıklamanda:'Bu sorunun doğru cevabı:#qSoru.dogruCevap# şıkkıdır. Çünkü..' diyerekten ortalama bir lise öğrencisinin anlayabileceği şekilde tane tane anlat. Diğer şıkların neden olamayacağına da kısaca değin.
+    Açıklamanda:'Bu sorunun doğru cevabı:#qSoru.dogruCevap# şıkkıdır. Çünkü..' diyerekten ortalama bir lise öğrencisinin anlayabileceği şekilde tane tane anlat.Diğer şıkların neden olamayacağına da kısaca değin.
 
     " & kurallar>
 
@@ -129,8 +129,7 @@
     D)#qSoru.sikD#
     E)#qSoru.sikE#
 
-    Açıklamanda:'Bu sorunun doğru cevabı:#qSoru.dogruCevap# şıkkıdır. Çünkü..' diyerekten tane tane anlat. Diğer şıkların neden olamayacağına da kısaca değin.
-
+    Açıklamanda:'Bu sorunun doğru cevabı:#qSoru.dogruCevap# şıkkıdır. Çünkü..' diyerekten tane tane anlat.Diğer şıkların neden olamayacağına da kısaca değin.
     " & kurallar>
 
     <cfset sonuc=ai.metinUretme(

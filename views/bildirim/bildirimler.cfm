@@ -16,58 +16,44 @@
 </cfquery>
 
 <cfoutput>
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-7">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-bell"></i>Bildirimler</h5>
-                        <span class="badge bg-secondary">#qBildirim.recordCount# bildirim</span>
-                    </div>
+    <div class="dar dar--genis">
+        <section class="kart">
+            <div class="kart__baslik">
+                <span>Bildirimler</span>
+                <span class="rozet"><span class="veri">#qBildirim.recordCount#</span></span>
+            </div>
 
-                    <div class="card-body p-0">
-                        <cfif qBildirim.recordCount EQ 0>
-                            <div class="p-4 text-center text-muted">
-                                <i class="bi bi-bell-slash fs-3 d-block mb-2"></i>
-                                Henüz bildiriminiz bulunmamaktadır.
-                            </div>
-                        <cfelse>
-                            <div class="list-group list-group-flush">
-                                <cfloop query="qBildirim">
-                                    <cfset renk=qBildirim.islemTipi EQ 'sistem' ? 'primary':qBildirim.islemTipi EQ 'yorum' ? 'success':'warning'>
-                                    <cfset ikon=qBildirim.islemTipi EQ 'sistem' ? 'gear':qBildirim.islemTipi EQ 'yorum' ? 'chat-dots':'robot'>
-                                    <cfset hedef=len(trim(qBildirim.hedefURL)) ? qBildirim.hedefURL:'##'>
-
-                                    <a href="#encodeForHTMLAttribute(hedef)#" class="list-group-item list-group-item-action d-flex gap-3 py-3">
-                                        <div class="flex-shrink-0">
-                                            <span class="rounded-circle p-2 d-inline-flex bg-#renk# bg-opacity-10">
-                                                <i class="bi bi-#ikon# text-#renk#"></i>
-                                            </span>
-                                        </div>
-
-                                        <div class="flex-grow-1">
-                                            <p class="mb-0 #qBildirim.goruldu EQ 0 ? 'fw-bold':'text-muted'#">#encodeForHTML(qBildirim.mesaj)#</p>
-
-                                            <small class="text-muted">
-                                                <i class="bi bi-clock"></i>
-                                                #dateFormat(qBildirim.tarih,'dd.mm.yyyy')#
-                                                #timeFormat(qBildirim.tarih,'HH:mm')#
-                                            </small>
-                                        </div>
-
-                                        <cfif len(trim(qBildirim.hedefURL))>
-                                            <div class="flex-shrink-0 align-self-center">
-                                                <i class="bi bi-chevron-right text-muted"></i>
-                                            </div>
-                                        </cfif>
-                                    </a>
-                                </cfloop>
-                            </div>
-                        </cfif>
+            <cfif qBildirim.recordCount EQ 0>
+                <div class="kart__govde">
+                    <div class="bos-durum">
+                        <span class="bos-durum__daire" aria-hidden="true"></span>
+                        <h3>Bildiriminiz bulunmamaktadır.</h3>
+                        <p>Sorunuza gelen çözümleri veya aldığınız yanıtları,buradan görüntüleyebilirsiniz.</p>
                     </div>
                 </div>
-            </div>
-        </div>
+            <cfelse>
+                <div class="liste">
+                    <cfloop query="qBildirim">
+                        <cfset ikonSinif=qBildirim.islemTipi EQ "sistem" ? "sistem" : qBildirim.islemTipi EQ "yorum" ? "yorum" : "ai">
+                        <cfset ikonAd=qBildirim.islemTipi EQ "sistem" ? "s-ayar" : qBildirim.islemTipi EQ "yorum" ? "s-yorum" : "s-robot">
+                        <cfset hedef=len(trim(qBildirim.hedefURL)) ? qBildirim.hedefURL:"##">
+                        
+                        <a class="liste-bag #qBildirim.goruldu EQ 0 ? 'liste-bag--yeni':''#" href="#encodeForHTMLAttribute(hedef)#">
+                            <span class="liste-ikon liste-ikon-- #ikonSinif#" aria-hidden="true"><svg class="simge simge--buyuk"><use href="###ikonAd#"></use></svg></span>
+                            
+                            <span class="liste-bag__govde">
+                                <span class="liste-bag__metin">#encodeForHTML(qBildirim.mesaj)#</span>
+                                <span class="liste-bag__zaman">#dateFormat(qBildirim.tarih,'dd.mm.yyyy')# · #timeFormat(qBildirim.tarih,'HH:mm')#</span>
+                            </span>
+
+                            <cfif len(trim(qBildirim.hedefURL))>
+                                <span class="liste-bag__ok" aria-hidden="true"><svg class="simge"><use href="##s-ok-sag"></use></svg></span>
+                            </cfif>
+                        </a>
+                    </cfloop>
+                </div>
+            </cfif>
+        </section>
     </div>
 </cfoutput>
 

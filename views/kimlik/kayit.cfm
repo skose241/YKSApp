@@ -37,7 +37,7 @@
     <cfelseif len(kullaniciAd) LT 3 OR len(kullaniciAd) GT 15>
         <cfset hata="Kullanıcı adınız 3-15 hane aralığında olmalıdır.">
     <cfelseif NOT reFind("^[a-zA-Z0-9çğıöşüÇĞİÖŞÜ_]+$",kullaniciAd)>
-        <cfset hata="Kullanıcı adı yalnızca harf,rakam ve alt çizgi içerebilir.">
+        <cfset hata="Kullanıcı adınız yalnızca harf,rakam ve alt çizgi içerebilir.">
     <cfelseif sifre NEQ sifreTekrar>
         <cfset hata="Şifreler eşleşmiyor.">
     <cfelseif len(sifre) LT 6>
@@ -54,18 +54,28 @@
         </cfquery>
 
         <cfif qKontrol.recordCount GT 0>
-            <cfset hata="Bu kullanıcı adı,zaten alınmış.">
+            <cfset hata="Bu kullanıcı adı alınmış.">
         <cfelse>
             <cftry>
-                <cfset sifreHash=hash(sifre,"SHA-256")>
-                <cfset cevapHash=hash(gizliCevap,"SHA-256")>
+                <cfset tuz=hash(createUUID() & getTickCount(),"SHA-256")>
+                <cfset sifreHash=hash(tuz & sifre,"SHA-512")>
+                <cfloop from="1" to="20000" index="d">
+                    <cfset sifreHash=hash(tuz & sifreHash,"SHA-512")>
+                </cfloop>
+                
+                <cfset cevapHash=hash(tuz & gizliCevap,"SHA-512")>
+                <cfloop from="1" to="20000" index="d">
+                    <cfset cevapHash=hash(tuz & cevapHash,"SHA-512")>
+                </cfloop>
 
                 <cfquery datasource="DSN">
-                    INSERT INTO Kullanici(rol,ad,sifre,gizliSoruID,gizliCevap,xp,kayitTarihi,aktiflik)
+                    INSERT INTO Kullanici(rol,ad,sifre,tuz,hashSurum,gizliSoruID,gizliCevap,,xp,kayitTarihi,aktiflik)
                     VALUES(
                         1,
                         <cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">,
                         <cfqueryparam value="#sifreHash#" cfsqltype="cf_sql_varchar">,
+                        <cfqueryparam value="#tuz#" cfsqltype="cf_sql_varchar">,
+                        <cfqueryparam value="2" cfsqltype="cf_sql_integer">,
                         <cfqueryparam value="#gizliSoruID#" cfsqltype="cf_sql_integer">,
                         <cfqueryparam value="#cevapHash#" cfsqltype="cf_sql_varchar">,
                         0,
@@ -74,10 +84,10 @@
                     )
                 </cfquery>
 
-                <cfset basari="Kayıt,başarıyla oluşturuldu.">
+                <cfset basari="Kayıt başarıyla oluşturuldu.">
 
                 <cfcatch type="database">
-                    <cfset hata="Bu kullanıcı adı,zaten alınmış.">
+                    <cfset hata="Bu kullanıcı adı alınmış.">
                 </cfcatch>
 
                 <cfcatch type="any">
@@ -89,81 +99,66 @@
 </cfif>
 
 <cfoutput>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white text-center">
-                        <h4 class="mb-0"><i class="bi bi-person-plus"></i>Kayıt Ol</h4>
+    <div class="dar dar--genis">
+        <section class="kart">
+            <div class="kart__baslik">Kayıt Ol</div>
+
+            <div class="kart__govde">
+                <cfif len(hata)>
+                    <div class="bildirim bildirim--hata ust-bosluk" role="alert">#encodeForHTML(hata)#</div>
+                </cfif>
+
+                <cfif len(basari)>
+                    <div class="bildirim bildirim--basarili ust-bosluk" role="status">#encodeForHTML(basari)#
+                        <a class="bag" href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a>
                     </div>
+                <cfelse>
+                    <form method="POST">
+                        <div class="alan ust-bosluk">
+                            <label for="kullaniciAd">Kullanıcı Adı:</label>
+                            <input class="girdi" type="text" name="kullaniciAd" id="kullaniciAd" maxlength="15" value="#encodeForHTMLAttribute(structKeyExists(form,'kullaniciAd') ? form.kullaniciAd : '')#" autocomplete="username" autocapitalize="none" required>
+                            <span class="alan__ipucu">Kullanıcı adınız 3-15 hane aralığında olmalıdır.</span>
+                        </div>
 
-                    <div class="card-body">
-                        <cfif len(hata)>
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
-                            </div>
-                        </cfif>
+                        <div class="alan">
+                            <label for="sifre">Şifre:</label>
+                            <input class="girdi" type="password" name="sifre" id="sifre" minlength="6" autocomplete="new-password" required>
+                            <span class="alan__ipucu">Şifre en az 6 haneli olmalıdır.</span>
+                        </div>
 
-                        <cfif len(basari)>
-                            <div class="alert alert-success">
-                                <i class="bi bi-check-circle"></i>#encodeForHTML(basari)#
-                                <a href="/YKSSite/views/kimlik/giris.cfm" class="alert-link">Giriş Yap</a>
-                            </div>
-                        </cfif>
+                        <div class="alan">
+                            <label for="sifreTekrar">Şifre Tekrarı:</label>
+                            <input class="girdi" type="password" name="sifreTekrar" id="sifreTekrar" minlength="6" autocomplete="new-password" required>
+                        </div>
 
-                        <cfif NOT len(basari)>
-                            <form method="POST">
-                                <div class="mb-3">
-                                    <label class="form-label">Kullanıcı Adı:</label>
-                                    <input type="text" name="kullaniciAd" class="form-control" maxlength="15" value="#encodeForHTMLAttribute(structKeyExists(form,'kullaniciAd') ? form.kullaniciAd:'')#" autocomplete="username" required>
-                                    <small class="text-muted">3-15 hane aralığında olmalıdır.</small>
-                                </div>
+                        <div class="alan">
+                            <label for="gizliSoruID">Gizli Soru:</label>
+                    
+                            <select class="secim" name="gizliSoruID" id="gizliSoruID" required>
+                                <option value="">Soru Seç:</option>
+                                <cfloop query="qGirisSoru">
+                                    <option value="#qGirisSoru.id#">#encodeForHTML(qGirisSoru.soruMetni)#</option>
+                                </cfloop>
+                            </select>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Şifre:</label>
-                                    <input type="password" name="sifre" class="form-control" minlength="6" autocomplete="new-password" required>
-                                </div>
+                            <span class="alan__ipucu">Şifrenizi sıfırlarken bu soru ile işlem yapacaksınız.</span>
+                        </div>
+                        
+                        <div class="alan">
+                            <label for="gizliCevap">Gizli Soru Cevabı:</label>
+                            <input class="girdi" type="text" name="gizliCevap" id="gizliCevap" maxlength="100" required>
+                            <span class="alan__ipucu">Büyük,küçük harf sıkıntısı yaşanmayacaktır.</span>
+                        </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Şifre Tekrarı:</label>
-                                    <input type="password" name="sifreTekrar" class="form-control" minlength="6" autocomplete="new-password" required>
-                                </div>
+                        <button class="dugme dugme--ana dugme--tam" type="submit" name="kayitOl" value="1">Kayıt Ol</button>
+                    </form>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Gizli Soru:</label>
-                                    <select name="gizliSoruID" class="form-select" required>
-                                        <option value="">Soru seçiniz.</option>
-                                        <cfloop query="qGirisSoru">
-                                            <option value="#qGirisSoru.id#">#encodeForHTML(qGirisSoru.soruMetni)#</option>
-                                        </cfloop>
-                                    </select>
-                                </div>
+                    <p class="ayrac-metin">veya</p>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Gizli Soru Cevabı:</label>
-                                    <input type="text" name="gizliCevap" class="form-control" maxlength="100" required>
-                                    <small class="text-muted">Büyük/Küçük harf sıkıntısı yaşanmayacaktır.</small>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button type="submit" name="kayitOl" value="1" class="btn btn-dark">
-                                        <i class="bi bi-person-check"></i>Kayıt Ol
-                                    </button>
-                                </div>
-                            </form>
-
-                            <hr>
-
-                            <div class="text-center">
-                                <small>Zaten üye misiniz?
-                                    <a href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a>
-                                </small>
-                            </div>
-                        </cfif>
-                    </div>
-                </div>
+                    <p class="sessiz" style="text-align:center">Zaten üye misin? <a class="bag" href="/YKSSite/views/kimlik/giris.cfm">Giriş Yap</a></p>
+                </cfif>
             </div>
-        </div>
+        </section>
     </div>
 </cfoutput>
 

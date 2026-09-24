@@ -8,7 +8,7 @@
 <cfparam name="bilgi" default="">
 
 <cfif structKeyExists(url,"durum") AND url.durum EQ "engelli">
-    <cfset bilgi="Hesabınız engellenmiştir. Lütfen yönetici ile iletişime geçiniz.">
+    <cfset bilgi="Hesabınız engellenmiştir.Lütfen yönetici ile iletişime geçiniz.">
 </cfif>
 
 <cfif structKeyExists(form,"girisYap")>
@@ -25,14 +25,45 @@
         <cfset sifreHash=hash(sifre,"SHA-256")>
 
         <cfquery name="qGiris" datasource="DSN">
-            SELECT id,ad,rol,xp
+            SELECT id,ad,rol,xp,sifre,tuz,hashSurum
             FROM Kullanici
             WHERE ad=<cfqueryparam value="#kullaniciAd#" cfsqltype="cf_sql_varchar">
             AND sifre=<cfqueryparam value="#sifreHash#" cfsqltype="cf_sql_varchar">
             AND aktiflik=1
         </cfquery>
 
+        <cfset dogruMu=false>
+
         <cfif qGiris.recordCount EQ 1>
+            <cfif val(qGiris.hashSurum) GTE 2>
+                <cfset denenen=hash(qGiris.tuz & sifre,"SHA-512")>
+
+                <cfloop from="1" to="20000" index="d">
+                    <cfset denenen=hash(qGiris.tuz & denenen,"SHA-512")>
+                </cfloop>
+
+                <cfset dogruMu=compare(denenen,qGiris.sifre) EQ 0>
+            <cfelse>
+                <cfset dogruMu=compare(hash(sifre,"SHA-256"),qGiris.sifre) EQ 0>
+
+                <cfif dogruMu>
+                    <cfset yeniTuz=hash(createUUID() & getTickCount(),"SHA-256")>
+                    <cfset yeniHash=hash(yeniTuz & sifre,"SHA-512")>
+
+                    <cfloop from="1" to="20000" index="d">
+                        <cfset yeniHash=hash(yeniTuz & yeniHash,"SHA-512")>
+                    </cfloop>
+
+                    <cfquery datasource="DSN">
+                        UPDATE Kullanici 
+                        SET sifre=<cfqueryparam value="#yeniHash#" cfsqltype="cf_sql_varchar">,
+                            tuz=<cfqueryparam value="#yeniTuz#" cfsqltype="cf_sql_varchar">,
+                            hashSurum=2
+                        WHERE id=<cfqueryparam value="#qGiris.id#" cfsqltype="cf_sql_integer">
+                    </cfquery>
+                </cfif>
+            </cfif>
+
             <cftry>
                 <cfset sessionRotate()>
 
@@ -88,65 +119,46 @@
 </cfif>
 
 <cfoutput>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white text-center">
-                        <h4 class="mb-0"><i class="bi bi-box-arrow-in-right"></i>Giriş Yap</h4>
+    <div class="dar">
+        <section class="kart">
+            <div class="kart__baslik">Giriş Yap</div>
+
+            <div class="kart__govde">
+                <cfif len(bilgi)>
+                    <div class="bildirim bildirim--hata ust-bosluk" role="alert">#encodeForHTML(bilgi)#</div>
+                </cfif>
+
+                <cfif len(hata)>
+                    <div class="bildirim bildirim--hata ust-bosluk" role="alert">#encodeForHTML(hata)#</div>
+                </cfif>
+
+                <form method="POST">
+                    <div class="alan ust-bosluk">
+                        <label for="kullaniciAd">Kullanıcı Adı:</label>
+                        <input class="girdi" type="text" name="kullaniciAd" id="kullaniciAd" maxlength="15" autocomplete="username" autocapitalize="none" required>
                     </div>
 
-                    <div class="card-body">
-                        <cfif len(bilgi)>
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle"></i>#encodeForHTML(bilgi)#
-                            </div>
-                        </cfif>
-
-                        <cfif len(hata)>
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(hata)#
-                            </div>
-                        </cfif>
-
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Kullanıcı Adı:</label>
-                                <input type="text" name="kullaniciAd" class="form-control" maxlength="15" autocomplete="username" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Şifre:</label>
-                                <input type="password" name="sifre" class="form-control" minlength="6" autocomplete="current-password" required>
-                            </div>
-
-                            <div class="mb-3 d-flex justify-content-between align-items-center">
-                                <div class="form-check">
-                                    <input type="checkbox" name="beniHatirla" id="beniHatirla" class="form-check-input">
-                                    <label class="form-check-label" for="beniHatirla">Beni Hatırla</label>
-                                </div>
-
-                                <a href="/YKSSite/views/kimlik/sifreSifirlama.cfm" class="text-muted small">Şifremi Unuttum</a>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" name="girisYap" value="1" class="btn btn-dark">
-                                    <i class="bi bi-box-arrow-in-right"></i>Giriş Yap
-                                </button>
-                            </div>
-                        </form>
-
-                        <hr>
-
-                        <div class="text-center">
-                            <small>Hesabınız yok mu?
-                                <a href="/YKSSite/views/kimlik/kayit.cfm">Kayıt Ol</a>
-                            </small>
-                        </div>
+                    <div class="alan">
+                        <label for="sifre">Şifre:</label>
+                        <input class="girdi" type="password" name="sifre" id="sifre" minlength="6" autocomplete="current-password" required>
                     </div>
-                </div>
+
+                    <div class="alan__satir">
+                        <label class="onay" for="beniHatirla">
+                            <input type="checkbox" name="beniHatirla" id="beniHatirla">Beni Hatırla
+                        </label>
+
+                        <a class="bag" href="/YKSSite/views/kimlik/sifreSifirlama.cfm">Şifremi Unuttum</a>
+                    </div>
+
+                    <button class="dugme dugme--ana dugme--tam" type="submit" name="girisYap" value="1">Giriş Yap</button>
+                </form>
+
+                <p class="ayrac-metin">veya</p>
+
+                <p class="sessiz" style="text-align:center">Hesabınız yok mu? <a class="bag" href="/YKSSite/views/kimlik/kayit.cfm">Kayıt Ol</a></p>
             </div>
-        </div>
+        </section>
     </div>
 </cfoutput>
 

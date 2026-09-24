@@ -1,15 +1,20 @@
 ﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
 
-<cfif cgi.request_method NEQ "POST" AND NOT structKeyExists(url,"hedefID")>
+<cfif cgi.request_method NEQ "POST">
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
-<cfif NOT structKeyExists(url,"hedefID") OR NOT isNumeric(url.hedefID) OR val(url.hedefID) LTE 0>
+<cfparam name="form.csrf" default="">
+<cfif NOT structKeyExists(SESSION,"csrf") OR compare(form.csrf,SESSION.csrf) NEQ 0>
+	<cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+</cfif>
+
+<cfif NOT structKeyExists(form,"hedefID") OR NOT isNumeric(form.hedefID) OR val(form.hedefID) LTE 0>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
-<cfset hedefID=val(url.hedefID)>
-<cfset hedefTip=structKeyExists(url,"hedefTip") ? lCase(trim(url.hedefTip)):"cevap">
+<cfset hedefID=val(form.hedefID)>
+<cfset hedefTip=structKeyExists(form,"hedefTip") ? lCase(trim(form.hedefTip)):"cevap">
 <cfset kullaniciID=val(SESSION.kullaniciID)>
 
 <cfif NOT listFind("cevap,yorum",hedefTip)>
@@ -18,8 +23,8 @@
 
 <cfset geri="/YKSSite/anaSayfa.cfm">
 
-<cfif structKeyExists(url,"geri") AND left(url.geri,9) EQ "/YKSSite/" AND NOT find("//",replace(url.geri,"/YKSSite/","",​"one"))>
-    <cfset geri=url.geri>
+<cfif structKeyExists(form,"geri") AND left(form.geri,9) EQ "/YKSSite/" AND NOT find("//",replace(form.geri,"/YKSSite/","",​"one"))>
+    <cfset geri=form.geri>
 </cfif>
 
 <cfquery name="qHedef" datasource="DSN">

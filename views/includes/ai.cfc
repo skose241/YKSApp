@@ -69,7 +69,7 @@
             </cfif>
 
             <cfif NOT len(trim(local.anahtar))>
-                <cfset sonuc.hata="#local.anahtarAd# okunamadı. Lucee servisini yeniden başlatıp ?resetApp=TOKEN ile çalıştırınız.">
+                <cfset sonuc.hata="#local.anahtarAd# okunamadı.Lucee servisini yeniden başlatıp ?resetApp=TOKEN ile çalıştırınız.">
                 <cfreturn sonuc>
             </cfif>
 

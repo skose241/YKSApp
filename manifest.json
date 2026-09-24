@@ -1,20 +1,27 @@
 {
-    "name":"YKS Net Peşinde",
-    "short_name":"Net Peşinde",
-    "start_url":"/YKSSite/anaSayfa.cfm",
-    "display":"standalone",
-    "background_color":"#ffffff",
-    "theme_color":"#212529",
-    "icons":[
-        {
-            "src":"/YKSSite/assets/images/icon-192.png",
-            "sizes":"192x192",
-            "type":"image/png"
-        },
-        {
-            "src":"/YKSSite/assets/images/icon-512.png",
-            "sizes":"512x512",
-            "type":"image/png"
-        }
-    ]
+	"name":"Net Peşinde",
+	"short_name":"Net Peşinde",
+	"description":"YKS Soru&Çözüm Platformu",
+	"lang":"tr",
+	"dir":"ltr",
+	"start_url":"/YKSSite/anaSayfa.cfm",
+	"scope":"/YKSSite/",
+	"display":"standalone",
+	"orientation":"portrait",
+	"background_color":"#E9EEEE",
+	"theme_color":"#E9EEEE",
+	"icons":[
+		{
+			"src":"/YKSSite/assets/images/favicon.ico",
+			"sizes":"192x192",
+			"type":"image/png",
+			"purpose":"any"
+		},
+		{
+			"src":"/YKSSite/assets/images/icon-512.png",
+			"sizes":"512x512",
+			"type":"image/png",
+			"purpose":"any"
+		}
+	]
 }

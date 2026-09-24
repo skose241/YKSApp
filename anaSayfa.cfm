@@ -1,15 +1,17 @@
-<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 <cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfparam name="url.alanID" default="0">
 <cfparam name="url.dersID" default="0">
 <cfparam name="url.siralama" default="yeni">
 <cfparam name="url.sayfa" default="1">
+<cfparam name="url.kaynak" default="kullanici">
 
 <cfset alanID=val(url.alanID)>
 <cfset dersID=val(url.dersID)>
 <cfset siralama=listFind("yeni,populer,favori",trim(url.siralama)) ? trim(url.siralama):"yeni">
 <cfset sayfa=val(url.sayfa) LT 1 ? 1:val(url.sayfa)>
+<cfset kaynak=listFind("kullanici,yapayzeka,tumu",trim(url.kaynak)) ? trim(url.kaynak):"kullanici">
 
 <cfset sayfaBasi=20>
 
@@ -31,7 +33,11 @@
     INNER JOIN Ders d ON d.id=s.dersID
     INNER JOIN Alan a ON a.id=d.alanID
     WHERE s.aktiflik=1
-    AND s.sistemSoru=0
+    <cfif kaynak EQ "yapayzeka">
+        AND s.sistemSoru=1
+    <cfelseif kaynak EQ "kullanici">
+        AND s.sistemSoru=0
+    </cfif>
     <cfif alanID GT 0>
         AND a.id=<cfqueryparam value="#alanID#" cfsqltype="cf_sql_integer">
     </cfif>
@@ -50,15 +56,24 @@
 
 <cfquery name="qSorular" datasource="DSN">
     SELECT s.id,s.soruResmi,s.soruMetni,s.goruntulenmeSayisi,s.eklenmeTarihi,
-        d.ad AS dersAd,a.ad AS alanAd,k.ad AS soranAd,
+        d.ad AS dersAd,a.ad AS alanAd,k.ad AS soranAd,k.id AS soranID,
         (SELECT COUNT(*) FROM Favori f WHERE f.soruID=s.id) AS favoriSayisi,
-        (SELECT COUNT(*) FROM Cevap c WHERE c.soruID=s.id AND c.aktiflik=1) AS cevapSayisi
+        (SELECT COUNT(*) FROM Cevap c WHERE c.soruID=s.id AND c.aktiflik=1) AS cevapSayisi,
+        CASE WHEN EXISTS(
+            SELECT 1 FROM Favori fk
+            WHERE fk.soruID=s.id
+            AND fk.kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
+        ) THEN 1 ELSE 0 END AS favoriMi
     FROM Soru s
     INNER JOIN Ders d ON d.id=s.dersID
     INNER JOIN Alan a ON a.id=d.alanID
     INNER JOIN Kullanici k ON k.id=s.soranID
     WHERE s.aktiflik=1
-    AND s.sistemSoru=0
+    <cfif kaynak EQ "yapayzeka">
+        AND s.sistemSoru=1
+    <cfelseif kaynak EQ "kullanici">
+        AND s.sistemSoru=0
+    </cfif>
     <cfif alanID GT 0>
         AND a.id=<cfqueryparam value="#alanID#" cfsqltype="cf_sql_integer">
     </cfif>
@@ -77,39 +92,33 @@
 </cfquery>
 
 <cfquery name="qGunlukSoru" datasource="DSN">
-    SELECT TOP 5
+	SELECT TOP 5
         gs.id,s.id AS soruID,s.soruResmi,s.soruMetni,s.sistemSoru,
         d.ad AS dersAd,a.ad AS alanAd
-    FROM GunlukSoru gs
-    INNER JOIN Soru s ON s.id=gs.soruID
-    INNER JOIN Ders d ON d.id=s.dersID
-    INNER JOIN Alan a ON a.id=d.alanID
-    WHERE gs.tarih=CAST(GETDATE() AS DATE)
-    AND s.aktiflik=1
-    ORDER BY gs.id DESC
+	FROM GunlukSoru gs
+	INNER JOIN Soru s ON s.id=gs.soruID
+	INNER JOIN Ders d ON d.id=s.dersID
+	INNER JOIN Alan a ON a.id=d.alanID
+	WHERE gs.tarih=CAST(GETDATE() AS DATE)
+	AND s.aktiflik=1
+	ORDER BY gs.id DESC
 </cfquery>
 
 <cfquery name="qYorumlar" datasource="DSN">
-    SELECT TOP 5 y.metin,y.eklenmeTarihi,k.ad AS yazar,c.soruID
-    FROM Yorum y
-    INNER JOIN Cevap c ON c.id=y.cevapID
-    INNER JOIN Soru s ON s.id=c.soruID
-    INNER JOIN Kullanici k ON k.id=y.yazanID
-    WHERE y.aktiflik=1
-    AND c.aktiflik=1
-    AND s.aktiflik=1
-    ORDER BY y.eklenmeTarihi DESC
+	SELECT TOP 5 y.metin,y.eklenmeTarihi,k.ad AS yazar,c.soruID
+	FROM Yorum y
+	INNER JOIN Cevap c ON c.id=y.cevapID
+	INNER JOIN Soru s ON s.id=c.soruID
+	INNER JOIN Kullanici k ON k.id=y.yazanID
+	WHERE y.aktiflik=1
+	AND c.aktiflik=1
+	AND s.aktiflik=1
+	AND k.sistemHesap=0
+	ORDER BY y.eklenmeTarihi DESC
 </cfquery>
 
-<cfquery name="qFavoriler" datasource="DSN">
-    SELECT soruID
-    FROM Favori
-    WHERE kullaniciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
-</cfquery>
-
-<cfset favoriListesi=valueList(qFavoriler.soruID)>
-<cfset geriURL=urlEncodedFormat("/YKSSite/anaSayfa.cfm?alanID=" & alanID & "&dersID=" & dersID & "&siralama=" & siralama & "&sayfa=" & sayfa)>
-<cfset filtreURL="?alanID=" & alanID & "&dersID=" & dersID & "&siralama=" & siralama>
+<cfset geriURL=urlEncodedFormat("/YKSSite/anaSayfa.cfm?alanID=" & alanID & "&dersID=" & dersID & "&kaynak=" & kaynak & "&siralama=" & siralama & "&sayfa=" & sayfa)>
+<cfset filtreURL="?alanID=" & alanID & "&dersID=" & dersID & "&kaynak=" & kaynak & "&siralama=" & siralama>
 
 <script>
     const dersListesi={
@@ -149,201 +158,188 @@
 </script>
 
 <cfoutput>
-    <div class="container-fluid mt-3">
-        <div class="row">
-            <div class="col-md-9">
-                <div class="card mb-3">
-                    <div class="card-body py-2">
-                        <form method="GET" class="row g-2 align-items-center">
-                            <div class="col-md-3">
-                                <select name="alanID" id="alanSec" class="form-select form-select-sm">
-                                    <option value="0">Tüm Alanlar</option>
-                                    <cfloop query="qAlan">
-                                        <option value="#qAlan.id#" #alanID EQ qAlan.id ? 'selected':''#>#encodeForHTML(qAlan.ad)#</option>
-                                    </cfloop>
-                                </select>
-                            </div>
+    <div class="sutunlar">
+        <div class="yigin">
+            <section class="kart filtre">
+                <div class="kart__govde">
+                    <form class="filtre__form" method="GET">
+                        <select class="secim" name="alanID" id="alanSec">
+                            <option value="0">Tüm Alanlar</option>
 
-                            <div class="col-md-3">
-                                <select name="dersID" id="dersSec" class="form-select form-select-sm">
-                                    <option value="0">Tüm Dersler</option>
-                                </select>
-                            </div>
+                            <cfloop query="qAlan">
+                                <option value="#qAlan.id#" #alanID EQ qAlan.id ? "selected":""#>#encodeForHTML(qAlan.ad)#</option>
+                            </cfloop>
+                        </select>
 
-                            <div class="col-md-3">
-                                <select name="siralama" class="form-select form-select-sm">
-                                    <option value="yeni" #siralama EQ 'yeni' ? 'selected':''#>En Yeni</option>
-                                    <option value="populer" #siralama EQ 'populer' ? 'selected':''#>En Popüler</option>
-                                    <option value="favori" #siralama EQ 'favori' ? 'selected':''#>En Çok Favoriye Alınan</option>
-                                </select>
-                            </div>
+                        <select class="secim" name="dersID" id="dersSec">
+                            <option value="0">Tüm Dersler</option>
+                        </select>
 
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-dark btn-sm w-100">
-                                    <i class="bi bi-funnel"></i>Filtrele
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        <select class="secim" name="siralama">
+                            <option value="yeni" #siralama EQ "yeni" ? "selected":""#>En Yeni</option>
+                            <option value="populer" #siralama EQ "populer" ? "selected":""#>En Popüler</option>
+                            <option value="favori" #siralama EQ "favori" ? "selected":""#>En Çok Beğenilen</option>
+                        </select>
+
+                        <select class="secim" name="kaynak">
+                            <option value="kullanici" #kaynak EQ "kullanici" ? "selected":""#>Kullanıcı Soruları</option>
+                            <option value="yapayzeka" #kaynak EQ "yapayzeka" ? "selected":""#>Yapay Zeka Soruları</option>
+                            <option value="tumu" #kaynak EQ "tumu" ? "selected":""#>Tümü</option>
+                        </select>
+
+                        <button class="dugme dugme--ana" type="submit">Filtrele</button>
+                    </form>
                 </div>
+            </section>
 
-                <cfif qSorular.recordCount EQ 0>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>Henüz soru bulunmamaktadır.
-                    </div>
-                <cfelse>
-                    <div class="row row-cols-1 row-cols-md-4 g-3">
-                        <cfloop query="qSorular">
-                            <cfset favoriMi=listFind(favoriListesi,qSorular.id) GT 0>
+            <cfif qSorular.recordCount EQ 0>
+                <div class="bos-durum">
+                    <span class="bos-durum__daire" aria-hidden="true"></span>
 
-                            <div class="col">
-                                <div class="card h-100 shadow-sm">
-                                    <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qSorular.id#">
-                                        <cfif len(trim(qSorular.soruResmi))>
-                                            <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qSorular.soruResmi)#"
-                                                class="card-img-top" style="height:160px; object-fit:cover;" alt="Soru">
-                                        <cfelse>
-                                            <div class="card-img-top bg-light p-2 small text-dark" style="height:160px; overflow:hidden;">
-                                                #encodeForHTML(left(qSorular.soruMetni,180))#
-                                            </div>
-                                        </cfif>
-                                    </a>
+                    <h3>Soru Bulunamadı.</h3>
+                    <p>Seçtiğiniz filtrelere uygun soru bulunmamaktadır.Filtreyi değiştirin veya ilk soruyu siz sorun.</p>
+                    <a class="dugme dugme--ana" href="/YKSSite/views/soru/soruEkle.cfm">Soru Ekle</a>
+                </div>
+            <cfelse>
+                <div class="soru-izgara">
+                    <cfloop query="qSorular">
+                        <cfset favoriMi=qSorular.favoriMi EQ 1>
 
-                                    <div class="card-body p-2">
-                                        <div class="mb-1">
-                                            <span class="badge bg-dark">#encodeForHTML(qSorular.dersAd)#</span>
-                                            <span class="badge bg-secondary">#encodeForHTML(qSorular.alanAd)#</span>
-                                        </div>
+                        <article class="soru-kutu">
+                            <a class="soru-kutu__ust" href="/YKSSite/views/soru/soruDetay.cfm?id=#qSorular.id#">
+                                <cfif len(trim(qSorular.soruResmi))>
+                                    <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qSorular.soruResmi)#"
+                                        class="soru-kutu__gorsel" alt="Soru Görseli">
+                                <cfelse>
+                                    <div class="soru-kutu__onizleme">#encodeForHTML(left(qSorular.soruMetni,180))#</div>
+                                </cfif>
+                            </a>
 
-                                        <div class="d-flex align-items-center gap-1 mb-1">
-                                            <img src="#application.avatarURL##urlEncodedFormat(qSorular.soranAd)#"
-                                                class="rounded-circle" width="20" height="20" alt="">
-                                            <small class="text-muted">#encodeForHTML(qSorular.soranAd)#</small>
-                                        </div>
+                            <div class="soru-kutu__govde">
+                                <div class="soru-kutu__etiket">
+                                    <span class="rozet rozet--sinav">#encodeForHTML(qSorular.alanAd)#</span>
+                                    <span class="rozet rozet--ders">#encodeForHTML(qSorular.dersAd)#</span>
+                                </div>
 
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">
-                                                <i class="bi bi-eye"></i>#qSorular.goruntulenmeSayisi#
-                                                <i class="bi bi-chat ms-2"></i>#qSorular.cevapSayisi#
-                                            </small>
+                                <div class="soru-kutu__kisi">
+                                    <span class="mini-avatar">#ucase(left(qSorular.soranAd,1))#</span>
+                                </div>
 
-                                            <a href="/YKSSite/views/soru/favoriToggle.cfm?soruID=#qSorular.id#&geri=#geriURL#" class="btn btn-sm #favoriMi ? 'btn-danger':'btn-outline-danger'#">
-                                                <i class="bi bi-heart#favoriMi ? '-fill':''#"></i>#qSorular.favoriSayisi#
-                                            </a>
-                                        </div>
+                                <div class="soru-kutu__alt">
+                                    <div class="soru-kutu__sayac">
+                                        <span><svg class="simge"><use href="##s-goz"></use></svg> #qSorular.goruntulenmeSayisi#</span>
+                                        <span><svg class="simge"><use href="##s-sohbet"></use></svg> #qSorular.cevapSayisi#</span>
                                     </div>
+
+                                    <form method="POST" action="/YKSSite/views/soru/favoriToggle.cfm" class="favori-form">
+                                        <input type="hidden" name="csrf" value="#SESSION.csrf#">
+                                        <input type="hidden" name="soruID" value="#qSorular.id#">
+                                        <input type="hidden" name="geri" value="#geriURL#">
+
+                                        <button class="favori#favoriMi ? 'favori--dolu':''#" type="submit">
+                                            <svg class="simge"><use href="###favoriMi ? 's-kalp-dolu':'s-kalp'#"></use></svg>#qSorular.favoriSayisi#
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
+                        </article>
+                    </cfloop>
+                </div>
+
+                <cfif toplamSayfa GT 1>
+                    <cfset ilkSayfa=max(1,sayfa-3)>
+                    <cfset sonSayfa=min(toplamSayfa,sayfa+3)>
+
+                    <nav class="sayfalama ust-bosluk" aria-label="Sayfalar">
+                        <cfif sayfa GT 1>
+                            <a href="#filtreURL#&sayfa=#sayfa-1#" aria-label="Önceki Sayfa">‹</a>
+                        <cfelse>
+                            <span aria-hidden="true">‹</span>
+                        </cfif>
+
+                        <cfif ilkSayfa GT 1>
+                            <a href="#filtreURL#&sayfa=1">1</a>
+                            
+                            <cfif ilkSayfa GT 2>
+                                <span aria-hidden="true">…</span>
+                            </cfif>
+                        </cfif>
+
+                        <cfloop from="#ilkSayfa#" to="#sonSayfa#" index="i">
+                            <cfset aktifMi=sayfa EQ i ? ' aria-current="page"':''>
+                            <a href="#filtreURL#&sayfa=#i#"#aktifMi#>#i#</a>
                         </cfloop>
-                    </div>
 
-                    <cfif toplamSayfa GT 1>
-                        <cfset ilkSayfa=max(1,sayfa-3)>
-                        <cfset sonSayfa=min(toplamSayfa,sayfa+3)>
+                        <cfif sonSayfa LT toplamSayfa>
+                            <cfif sonSayfa LT toplamSayfa-1>
+                                <span aria-hidden="true">…</span>
+                            </cfif>
 
-                        <nav class="mt-4">
-                            <ul class="pagination justify-content-center flex-wrap">
-                                <li class="page-item #sayfa EQ 1 ? 'disabled':''#">
-                                    <a class="page-link" href="#filtreURL#&sayfa=#sayfa-1#">
-                                        <i class="bi bi-chevron-left"></i>
-                                    </a>
-                                </li>
+                            <a href="#filtreURL#&sayfa=#toplamSayfa#">#toplamSayfa#</a>
+                        </cfif>
 
-                                <cfif ilkSayfa GT 1>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#filtreURL#&sayfa=1">1</a>
-                                    </li>
-
-                                    <cfif ilkSayfa GT 2>
-                                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                                    </cfif>
-                                </cfif>
-
-                                <cfloop from="#ilkSayfa#" to="#sonSayfa#" index="i">
-                                    <li class="page-item #sayfa EQ i ? 'active':''#">
-                                        <a class="page-link" href="#filtreURL#&sayfa=#i#">#i#</a>
-                                    </li>
-                                </cfloop>
-
-                                <cfif sonSayfa LT toplamSayfa>
-                                    <cfif sonSayfa LT toplamSayfa-1>
-                                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                                    </cfif>
-
-                                    <li class="page-item">
-                                        <a class="page-link" href="#filtreURL#&sayfa=#toplamSayfa#">#toplamSayfa#</a>
-                                    </li>
-                                </cfif>
-
-                                <li class="page-item #sayfa EQ toplamSayfa ? 'disabled':''#">
-                                    <a class="page-link" href="#filtreURL#&sayfa=#sayfa+1#">
-                                        <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </cfif>
+                        <cfif sayfa LT toplamSayfa>
+                            <a href="#filtreURL#&sayfa=#sayfa+1#" aria-label="Sonraki Sayfa">›</a>
+                        <cfelse>
+                            <span aria-hidden="true">›</span>
+                        </cfif>
+                    </nav>
                 </cfif>
-            </div>
+            </cfif>
+        </div>
 
-            <div class="col-md-3">
-                <div class="card mb-3">
-                    <div class="card-header bg-dark text-white">
-                        <i class="bi bi-star"></i>Günün Soruları
-                    </div>
+        <div class="yigin">
+            <section class="kart">
+                <div class="kart__baslik">Günün AI Soruları:</div>
 
-                    <div class="card-body p-2">
-                        <cfif qGunlukSoru.recordCount GT 0>
+                <div class="kart__govde">
+                    <cfif qGunlukSoru.recordCount GT 0>
+                        <div class="yigin">
                             <cfloop query="qGunlukSoru">
-                                <div class="border-bottom pb-2 mb-2">
-                                    <span class="badge bg-secondary mb-1">#encodeForHTML(qGunlukSoru.dersAd)#</span>
+                                <div>
+                                    <span class="rozet rozet--ders">#encodeForHTML(qGunlukSoru.dersAd)#</span>
 
                                     <cfif qGunlukSoru.sistemSoru EQ 1>
-                                        <p class="small mb-1">#encodeForHTML(left(qGunlukSoru.soruMetni,80))#...</p>
+                                        <p class="sessiz ust-bosluk">#encodeForHTML(left(qGunlukSoru.soruMetni,90))#…</p>
                                     <cfelseif len(trim(qGunlukSoru.soruResmi))>
                                         <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qGunlukSoru.soruResmi)#"
-                                            class="img-fluid rounded mb-1" alt="Soru">
+                                            class="soru-gorsel ust-bosluk" alt="Soru Resmi">
                                     </cfif>
 
-                                    <div class="d-grid">
-                                        <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qGunlukSoru.soruID#" class="btn btn-dark btn-sm">
-                                            <i class="bi bi-pencil"></i>Cevapla
-                                        </a>
-                                    </div>
+                                    <a class="dugme dugme--ana dugme--tam ust-bosluk" href="/YKSSite/views/soru/soruDetay.cfm?id=#qGunlukSoru.soruID#">Cevapla</a>
                                 </div>
                             </cfloop>
-                        <cfelse>
-                            <p class="text-muted small text-center mb-0">Bugün için soru eklenmemiş.</p>
-                        </cfif>
-                    </div>
+                        </div>
+                    <cfelse>
+                        <p class="sessiz">Bugün için soru eklenmemiştir.</p>
+                    </cfif>
                 </div>
+            </section>
 
-                <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <i class="bi bi-chat-dots"></i>Güncel Tartışma
-                    </div>
+            <section class="kart">
+                <div class="kart__baslik">Güncel Tartışma:</div>
 
-                    <div class="card-body p-2">
-                        <cfif qYorumlar.recordCount GT 0>
-                            <cfloop query="qYorumlar">
-                                <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qYorumlar.soruID#" class="text-decoration-none text-dark">
-                                    <div class="border-bottom pb-2 mb-2">
-                                        <div class="d-flex align-items-center gap-1 mb-1">
-                                            <img src="#application.avatarURL##urlEncodedFormat(qYorumlar.yazar)#"
-                                                class="rounded-circle" width="20" height="20" alt="">
-                                            <small class="fw-bold">#encodeForHTML(qYorumlar.yazar)#</small>
-                                        </div>
-
-                                        <small class="text-muted">#encodeForHTML(left(qYorumlar.metin,80))##len(qYorumlar.metin) GT 80 ? '...':''#</small>
-                                    </div>
-                                </a>
-                            </cfloop>
-                        <cfelse>
-                            <p class="text-muted small text-center mb-0">Henüz yorum yok.</p>
-                        </cfif>
-                    </div>
+                <div class="kart__govde">
+                    <cfif qYorumlar.recordCount GT 0>
+                        <cfloop query="qYorumlar">
+                            <div class="yorum">
+                                <span class="avatar">#ucase(left(qYorumlar.yazar,2))#</span>
+                            
+                                <div style="flex:1; min-width:0">
+                                    <div class="yorum__ust">
+                                        <span class="yorum__ad">#encodeForHTML(qYorumlar.yazar)#</span>
+                                        <span class="yorum__zaman">#dateFormat(qYorumlar.eklenmeTarihi,'dd.mm')#</span>
+                                    </div>    
+                                    
+                                    <a class="sessiz" href="/YKSSite/views/soru/soruDetay.cfm?id=#qYorumlar.soruID#">#encodeForHTML(left(qYorumlar.metin,80))##len(qYorumlar.metin) GT 80 ? "…":""#</a>
+                                </div>
+                            </div>    
+                        </cfloop>
+                    <cfelse>
+                        <p class="sessiz">Henüz Yorum Yok</p>
+                    </cfif>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </cfoutput>

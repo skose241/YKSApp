@@ -35,14 +35,14 @@
 <cfset tytHaritasi={2=18,3=19,4=23,5=24,6=25,7=26}>
 <cfset matHaritasi={2=1,3=1,4=2,5=1,6=1,7=2}>
 <cfset fenHaritasi={2=3,3=4,4=5,5=3,6=4,7=5}>
-<cfset eaHaritasi={2=6,3=6,4=7,5=6,6=6,7=8}>
-<cfset sozelHaritasi={2=9,3=10,4=11,5=12,6=9,7=10}>
+<cfset eaHaritasi={2=13,3=14,4=15,5=16,6=17,7=13}>
+<cfset sozelHaritasi={2=6,3=7,4=8,5=9,6=10,7=11}>
 
 <cfset tytDersID=structKeyExists(tytHaritasi,gunNo) ? tytHaritasi[gunNo]:27>
 <cfset aytMatID=structKeyExists(matHaritasi,gunNo) ? matHaritasi[gunNo]:1>
 <cfset aytFenID=structKeyExists(fenHaritasi,gunNo) ? fenHaritasi[gunNo]:3>
-<cfset aytEAID=structKeyExists(eaHaritasi,gunNo) ? eaHaritasi[gunNo]:6>
-<cfset aytSozelID=structKeyExists(sozelHaritasi,gunNo) ? sozelHaritasi[gunNo]:11>
+<cfset aytEAID=structKeyExists(eaHaritasi,gunNo) ? eaHaritasi[gunNo]:13>
+<cfset aytSozelID=structKeyExists(sozelHaritasi,gunNo) ? sozelHaritasi[gunNo]:6>
 
 <cfquery name="qDersler" datasource="DSN">
     SELECT id AS dersID,ad AS dersAd

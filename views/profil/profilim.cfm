@@ -1,5 +1,5 @@
-﻿<cfinclude template="/YKSSite/views/includes/baslik.cfm">
-<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
+<cfinclude template="/YKSSite/views/includes/baslik.cfm">
 
 <cfif structKeyExists(url,"id") AND isNumeric(url.id) AND val(url.id) GT 0>
     <cfset profilID=val(url.id)>
@@ -63,7 +63,7 @@
 
                 <cfcookie name="beniHatirla" value="" expires="now">
 
-                <cfset sifreBasari="Şifreniz başarıyla güncellendi. Diğer cihazlardaki oturumlarınız kapatıldı.">
+                <cfset sifreBasari="Şifreniz başarıyla güncellendi.Diğer cihazlardaki oturumlarınız kapatılmıştır.">
 
                 <cfcatch type="any">
                     <cfset sifreHata="Şifre güncellenirken bir hata oluştu.">
@@ -131,279 +131,229 @@
 </cfif>
 
 <cfoutput>
-    <div class="container mt-4">
-        <div class="card shadow mb-4">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3">
-                    <img src="#application.avatarURL##urlEncodedFormat(qProfil.ad)#&size=80"
-                        class="rounded-circle" width="80" height="80" alt="">
-
-                    <div class="flex-grow-1">
-                        <h4 class="mb-1">#encodeForHTML(qProfil.ad)#</h4>
-
-                        <span class="badge bg-dark me-1">
-                            #qProfil.rol EQ 3 ? 'Admin':qProfil.rol EQ 2 ? 'Moderatör':'Kullanıcı'#
-                        </span>
-
-                        <span class="badge bg-warning text-dark">
-                            <i class="bi bi-star"></i>#qProfil.xp# XP
-                        </span>
-
-                        <p class="text-muted mt-1 mb-0 small">
-                            <i class="bi bi-calendar"></i>
-                            Kayıt:#dateFormat(qProfil.kayitTarihi,'dd.mm.yyyy')#
-                        </p>
+    <div class="yigin">
+        <section class="kart">
+            <div class="kart__govde">
+                <div class="profil-ust">
+                    <span class="avatar">#uCase(left(qProfil.ad,1))#</span>
+                
+                    <div class="profil-ust__bilgi">
+                        <h1 class="profil-ust__ad">#encodeForHTML(qProfil.ad)#</h1>
+                    
+                        <div class="profil-ust__satir">
+                            <span class="rozet">#qProfil.rol EQ 3 ? "Admin":qProfil.rol EQ 2 ? "Moderatör":"Kullanıcı"#</span>
+                            <span class="rozet rozet--xp"><span class="veri">#numberFormat(qProfil.xp,',')#</span> XP</span>
+                            <span class="sessiz">Kayıt Tarihi:#dateFormat(qProfil.kayitTarihi,'dd.mm.yyyy')#</span>
+                        </div>
                     </div>
 
                     <cfif benimProfil>
-                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="##sifreModal">
-                            <i class="bi bi-key"></i>Şifre Değiştir
-                        </button>
+                        <button class="dugme dugme--ikincil" type="button" data-pencere-ac="sifrePencere">Şifre Değiştir</button>
                     </cfif>
                 </div>
             </div>
-        </div>
+        </section>
 
         <cfif benimProfil AND len(sifreBasari)>
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle"></i>#encodeForHTML(sifreBasari)#
-            </div>
+            <div class="bildirim bildirim--basarili" role="status">#encodeForHTML(sifreBasari)#</div>
         </cfif>
 
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body py-3">
-                        <h4 class="mb-0 text-dark">#qIstatistik.soruAdet#</h4>
-                        <small class="text-muted">Eklenen Soru</small>
-                    </div>
-                </div>
+        <div class="istatistik">
+            <div class="istatistik__kutu">
+                <span class="istatistik__sayi">#qIstatistik.soruAdet#</span>
+                <span class="istatistik__ad">Eklenen Soru Sayısı:</span>
             </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body py-3">
-                        <h4 class="mb-0 text-success">#qIstatistik.dogruAdet#</h4>
-                        <small class="text-muted">Doğru Cevap</small>
-                    </div>
-                </div>
+            <div class="istatistik__kutu istatistik__kutu--dogru">
+                <span class="istatistik__sayi">#qIstatistik.dogruAdet#</span>
+                <span class="istatistik__ad">Doğru Cevap Sayısı:</span>
             </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body py-3">
-                        <h4 class="mb-0 text-primary">#qIstatistik.yorumAdet#</h4>
-                        <small class="text-muted">Yapılan Yorum</small>
-                    </div>
-                </div>
+            <div class="istatistik__kutu">
+                <span class="istatistik__sayi">#qIstatistik.yorumAdet#</span>
+                <span class="istatistik__ad">Yorum:</span>
             </div>
 
-            <div class="col-6 col-md-3">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body py-3">
-                        <h4 class="mb-0 text-danger">#qIstatistik.favoriAdet#</h4>
-                        <small class="text-muted">Favori</small>
-                    </div>
-                </div>
+            <div class="istatistik__kutu istatistik__kutu--favori">
+                <span class="istatistik__sayi">#qIstatistik.favoriAdet#</span>
+                <span class="istatistik__ad">Favori:</span>
             </div>
         </div>
 
-        <ul class="nav nav-tabs mb-3">
-            <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="##sorular">
-                    <i class="bi bi-question-circle"></i>Sorular
-                    <span class="badge bg-secondary ms-1">#qIstatistik.soruAdet#</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="##cevaplar">
-                    <i class="bi bi-check-circle"></i>Çözümler
-                    <span class="badge bg-secondary ms-1">#qCevap.recordCount#</span>
-                </a>
-            </li>
+        <div class="sekmeler" role="tablist">
+            <button class="sekme" type="button" role="tab" aria-selected="true" aria-controls="panelSorular">Sorular:<span class="sekme__sayi">#qIstatistik.soruAdet#</span></button>
+            <button class="sekme" type="button" role="tab" aria-selected="false" aria-controls="panelCevaplar">Çözümler:<span class="sekme__sayi">#qCevap.recordCount#</span></button>
 
             <cfif benimProfil>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="##favoriler">
-                        <i class="bi bi-heart"></i>Favorilerim
-                        <span class="badge bg-secondary ms-1">#qIstatistik.favoriAdet#</span>
-                    </a>
-                </li>
+                <button class="sekme" type="button" role="tab" aria-selected="false" aria-controls="panelFavoriler">Favorilerim:<span class="sekme__sayi">#qIstatistik.favoriAdet#</span></button>
             </cfif>
-        </ul>
+        </div>
 
-        <div class="tab-content">
-            <div class="tab-pane fade show active" id="sorular">
-                <cfif qSoru.recordCount EQ 0>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>Henüz soru eklenmemiş.
-                    </div>
-                <cfelse>
-                    <div class="row row-cols-2 row-cols-md-4 g-3">
-                        <cfloop query="qSoru">
-                            <div class="col">
-                                <div class="card h-100 shadow-sm">
-                                    <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qSoru.id#">
-                                        <cfif len(trim(qSoru.soruResmi))>
-                                            <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qSoru.soruResmi)#"
-                                                class="card-img-top" style="height:140px; object-fit:cover;" alt="Soru">
-                                        <cfelse>
-                                            <div class="card-img-top bg-light p-2 small text-dark" style="height:140px; overflow:hidden;">
-                                                #encodeForHTML(left(qSoru.soruMetni,160))#
-                                            </div>
-                                        </cfif>
-                                    </a>
+        <div class="sekme-panel" id="panelSorular" role="tabpanel">
+            <cfif qSoru.recordCount EQ 0>
+                <div class="bos-durum">
+                    <span class="bos-durum__daire" aria-hidden="true"></span>
+                
+                    <h3>Henüz soru yok,ilk soruyu siz ekleyin.</h3>
+                    <p>Eklediğiniz sorular burada listelenir.</p>
+                </div>
+            <cfelse>
+                <div class="soru-izgara">
+                    <cfloop query="qSoru">
+                        <article class="soru-kutu">
+                            <a class="soru-kutu__ust" href="/YKSSite/views/soru/soruDetay.cfm?id=#qSoru.id#">
+                                <cfif len(trim(qSoru.soruResmi))>
+                                    <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qSoru.soruResmi)#"
+                                    class="soru-kutu__gorsel" alt="Soru görseli">
+                                <cfelse>
+                                    <div class="soru-kutu__onizleme">#encodeForHTML(left(qSoru.soruMetni,160))#</div>
+                                </cfif>
+                            </a>
 
-                                    <div class="card-body p-2">
-                                        <span class="badge bg-dark">#encodeForHTML(qSoru.dersAd)#</span>
-                                        <span class="badge bg-secondary">#encodeForHTML(qSoru.alanAd)#</span>
+                            <div class="soru-kutu__govde">
+                                <div class="soru-kutu__etiket">
+                                    <span class="rozet rozet--sinav">#encodeForHTML(qSoru.alanAd)#</span>
+                                    <span class="rozet rozet--ders">#encodeForHTML(qSoru.dersAd)#</span>
+                                </div>
 
-                                        <div class="mt-1">
-                                            <small class="text-muted">
-                                                <i class="bi bi-eye"></i>#qSoru.goruntulenmeSayisi# . #dateFormat(qSoru.eklenmeTarihi,'dd.mm.yyyy')#
-                                            </small>
-                                        </div>
-                                    </div>
+                                <div class="soru-kutu__sayac">
+                                    <span><svg class="simge"><use href="##s-goz"></use></svg> #qSoru.goruntulenmeSayisi#</span>
+                                    <span>#dateFormat(qSoru.eklenmeTarihi,'dd.mm.yyyy')#</span>
                                 </div>
                             </div>
+                        </article>
+                    </cfloop>
+                </div>
+            </cfif>
+        </div>
+
+        <div class="sekme-panel" id="panelCevaplar" role="tabpanel" hidden>
+            <cfif qCevap.recordCount EQ 0>
+                <div class="bos-durum">
+                    <span class="bos-durum__daire" aria-hidden="true"></span>
+
+                    <h3>Henüz çözüm yok,ilk çözümü siz ekleyin.</h3>
+                    <p>Cevapladığınız sorular burada görüntülenir.</p>
+                </div>
+            <cfelse>
+                <div class="soru-izgara">
+                    <cfloop query="qCevap">
+                        <article class="soru-kutu">
+                            <a class="soru-kutu__ust" href="/YKSSite/views/soru/soruDetay.cfm?id=#qCevap.id#">
+                                <cfif len(trim(qCevap.soruResmi))>
+                                    <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qCevap.soruResmi)#"
+                                        class="soru-kutu__gorsel" alt="Soru görseli">
+                                <cfelse>
+                                    <div class="soru-kutu__onizleme">#encodeForHTML(left(qCevap.soruMetni,160))#</div>
+                                </cfif>
+                            </a>
+
+                            <div class="soru-kutu__govde">
+                                <div class="soru-kutu__etiket">
+                                    <span class="rozet rozet--ders">#encodeForHTML(qCevap.dersAd)#</span>
+
+                                    <cfif qCevap.onay EQ 1>
+                                        <span class="rozet rozet--dogru">Doğru</span>
+                                    <cfelseif qCevap.onay EQ 0>
+                                        <span class="rozet rozet--yanlis">Yanlış</span>
+                                    <cfelse>
+                                        <span class="rozet">Belirsiz</span>
+                                    </cfif>
+                                </div>
+
+                                <div class="soru-kutu__sayac">
+                                    <span>#dateFormat(qCevap.eklenmeTarihi,'dd.mm.yyyy')#</span>
+                                </div>
+                            </div>
+                        </article>
+                    </cfloop>
+                </div>
+            </cfif>
+        </div>
+
+        <cfif benimProfil>
+            <div class="sekme-panel" id="panelFavoriler" role="tabpanel" hidden>
+                <cfif qFavori.recordCount EQ 0>
+                    <div class="bos-durum">
+                        <span class="bos-durum__daire" aria-hidden="true"></span>
+
+                        <h3>Favoriniz bulunmamaktadır.</h3>
+                        <p>Zorlandığınız soruyu favorinize ekleyin,daha sonra hepsini listeden seçerek çözünüz.</p>
+
+                        <a class="dugme dugme--ikincil" href="/YKSSite/anaSayfa.cfm">Ana sayfaya dön</a>
+                    </div>
+                <cfelse>
+                    <div class="soru-izgara">
+                        <cfloop query="qFavori">
+                            <article class="soru-kutu">
+                                <a class="soru-kutu__ust" href="/YKSSite/views/soru/soruDetay.cfm?id=#qFavori.id#">
+                                    <cfif len(trim(qFavori.soruResmi))>
+                                        <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qFavori.soruResmi)#"
+                                            class="soru-kutu__gorsel" alt="Soru görseli">
+                                    <cfelse>
+                                            <div class="soru-kutu__onizleme">#encodeForHTML(left(qFavori.soruMetni,160))#</div>
+                                    </cfif>
+                                </a>
+                        
+                                <div class="soru-kutu__govde">
+                                    <div class="soru-kutu__etiket">
+                                        <span class="rozet rozet--sinav">#encodeForHTML(qFavori.alanAd)#</span>
+                                        <span class="rozet rozet--ders">#encodeForHTML(qFavori.dersAd)#</span>
+                                    </div>
+
+                                    <div class="soru-kutu__sayac">
+                                        <span><svg class="simge"><use href="##s-goz"></use></svg> #qFavori.goruntulenmeSayisi#</span>
+                                    </div>
+                                </div>
+                            </article>
                         </cfloop>
                     </div>
                 </cfif>
             </div>
-
-            <div class="tab-pane fade" id="cevaplar">
-                <cfif qCevap.recordCount EQ 0>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>Henüz çözüm eklenmemiş.
-                    </div>
-                <cfelse>
-                    <div class="row row-cols-2 row-cols-md-4 g-3">
-                        <cfloop query="qCevap">
-                            <div class="col">
-                                <div class="card h-100 shadow-sm">
-                                    <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qCevap.id#">
-                                        <cfif len(trim(qCevap.soruResmi))>
-                                            <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qCevap.soruResmi)#"
-                                                class="card-img-top" style="height:140px; object-fit:cover;" alt="Soru">
-                                        <cfelse>
-                                            <div class="card-img-top bg-light p-2 small text-dark" style="height:140px; overflow:hidden;">
-                                                #encodeForHTML(left(qCevap.soruMetni,160))#
-                                            </div>
-                                        </cfif>
-                                    </a>
-
-                                    <div class="card-body p-2">
-                                        <span class="badge bg-dark">#encodeForHTML(qCevap.dersAd)#</span>
-                                        <span class="badge bg-secondary">#encodeForHTML(qCevap.alanAd)#</span>
-
-                                        <div class="mt-1">
-                                            <span class="badge #qCevap.onay EQ 1 ? 'bg-success':qCevap.onay EQ 0 ? 'bg-danger':'bg-secondary'#">
-                                                #qCevap.onay EQ 1 ? 'Doğru':qCevap.onay EQ 0 ? 'Yanlış':'Belirsiz'#
-                                            </span>
-
-                                            <small class="text-muted d-block mt-1">
-                                                #dateFormat(qCevap.eklenmeTarihi,'dd.mm.yyyy')#
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </cfloop>
-                    </div>
-                </cfif>
-            </div>
-
-            <cfif benimProfil>
-                <div class="tab-pane fade" id="favoriler">
-                    <cfif qFavori.recordCount EQ 0>
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i>Henüz favori eklenmemiş.
-                        </div>
-                    <cfelse>
-                        <div class="row row-cols-2 row-cols-md-4 g-3">
-                            <cfloop query="qFavori">
-                                <div class="col">
-                                    <div class="card h-100 shadow-sm">
-                                        <a href="/YKSSite/views/soru/soruDetay.cfm?id=#qFavori.id#">
-                                            <cfif len(trim(qFavori.soruResmi))>
-                                                <img src="/YKSSite/assets/images/sorular/#encodeForHTMLAttribute(qFavori.soruResmi)#"
-                                                    class="card-img-top" style="height:140px; object-fit:cover;" alt="Soru">
-                                            <cfelse>
-                                                <div class="card-img-top bg-light p-2 small text-dark" style="height:140px; overflow:hidden;">
-                                                    #encodeForHTML(left(qFavori.soruMetni,160))#
-                                                </div>
-                                            </cfif>
-                                        </a>
-
-                                        <div class="card-body p-2">
-                                            <span class="badge bg-dark">#encodeForHTML(qFavori.dersAd)#</span>
-                                            <span class="badge bg-secondary">#encodeForHTML(qFavori.alanAd)#</span>
-
-                                            <div class="mt-1">
-                                                <small class="text-muted">
-                                                    <i class="bi bi-eye"></i>#qFavori.goruntulenmeSayisi#
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </cfloop>
-                        </div>
-                    </cfif>
-                </div>
-            </cfif>
-        </div>
+        </cfif>
     </div>
 
     <cfif benimProfil>
-        <div class="modal fade" id="sifreModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title"><i class="bi bi-key"></i>Şifre Değiştir</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <cfif len(sifreHata)>
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>#encodeForHTML(sifreHata)#
-                            </div>
-                        </cfif>
-
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Mevcut Şifre:</label>
-                                <input type="password" name="eskiSifre" class="form-control" autocomplete="current-password" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Yeni Şifre:</label>
-                                <input type="password" name="yeniSifre" class="form-control" minlength="6" autocomplete="new-password" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Yeni Şifre Tekrarı:</label>
-                                <input type="password" name="yeniSifreTekrar" class="form-control" minlength="6" autocomplete="new-password" required>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" name="sifreDegistir" value="1" class="btn btn-dark">
-                                    <i class="bi bi-check-lg"></i>Güncelle
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+        <dialog class="pencere" id="sifrePencere">
+            <div class="kart__baslik">
+                <span>Şifre Değiştir</span>
+                
+                <button class="simge-dugme" type="button" data-pencere-kapat aria-label="Kapat">✕</button>
             </div>
-        </div>
 
+            <div class="pencere__govde">
+                <cfif len(sifreHata)>
+                    <div class="bildirim bildirim--hata ust-bosluk" role="alert">#encodeForHTML(sifreHata)#</div>
+                </cfif>
+            
+                <form method="POST">
+                    <div class="alan">
+                        <label for="eskiSifre">Mevcut Şifre:</label>
+                        
+                        <input class="girdi" type="password" name="eskiSifre" id="eskiSifre" autocomplete="current-password" required>
+                    </div>
+
+                    <div class="alan">
+                        <label for="yeniSifre">Yeni Şifre:</label>
+                    
+                        <input class="girdi" type="password" name="yeniSifre" id="yeniSifre" minlength="6" autocomplete="new-password" required>
+                        <span class="alan__ipucu">Şifreniz en az 6 karakter uzunluğunda olmalıdır.</span>
+                    </div>
+                    
+                    <div class="alan">
+                        <label for="yeniSifreTekrar">Yeni Şifre Tekrarı:</label>
+                        
+                        <input class="girdi" type="password" name="yeniSifreTekrar" id="yeniSifreTekrar" minlength="6" autocomplete="new-password" required>
+                    </div>
+                
+                    <button class="dugme dugme--ana dugme--tam" type="submit" name="sifreDegistir" value="1">Güncelle</button>
+                </form>
+            </div>
+        </dialog>
+        
         <cfif len(sifreHata)>
             <script>
-                document.addEventListener('DOMContentLoaded',function(){
-                    new bootstrap.Modal(document.getElementById('sifreModal')).show();
-                });
+                document.getElementById("sifrePencere").showModal();
             </script>
         </cfif>
     </cfif>

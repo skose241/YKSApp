@@ -1,16 +1,25 @@
 ﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
 
-<cfif NOT structKeyExists(url,"soruID") OR NOT isNumeric(url.soruID) OR val(url.soruID) LTE 0>
+<cfif cgi.request_method NEQ "POST">
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
-<cfset soruID=val(url.soruID)>
+<cfparam name="form.csrf" default="">
+<cfif NOT structKeyExists(SESSION,"csrf") OR compare(form.csrf,SESSION.csrf) NEQ 0>
+	<cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+</cfif>
+
+<cfif NOT structKeyExists(form,"soruID") OR NOT isNumeric(form.soruID) OR val(form.soruID) LTE 0>
+    <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+</cfif>
+
+<cfset soruID=val(form.soruID)>
 <cfset kullaniciID=val(SESSION.kullaniciID)>
 
 <cfset geri="/YKSSite/anaSayfa.cfm">
 
-<cfif structKeyExists(url,"geri") AND left(url.geri,9) EQ "/YKSSite/">
-    <cfset geri=url.geri>
+<cfif structKeyExists(form,"geri") AND left(form.geri,9) EQ "/YKSSite/">
+    <cfset geri=form.geri>
 </cfif>
 
 <cfquery name="qSoru" datasource="DSN">
