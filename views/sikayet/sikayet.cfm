@@ -1,13 +1,11 @@
 ﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
 <cfinclude template="/YKSSite/views/includes/baslik.cfm">
-
 <cfif NOT structKeyExists(url,"hedefTip") OR NOT structKeyExists(url,"hedefID") OR NOT isNumeric(url.hedefID) OR val(url.hedefID) LTE 0>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfset hedefTip=lCase(trim(url.hedefTip))>
 <cfset hedefID=val(url.hedefID)>
-
 <cfif NOT listFind("soru,cevap,yorum,kullanici",hedefTip)>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
@@ -53,7 +51,6 @@
 <cfif qHedef.recordCount EQ 0>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
-
 <cfif val(qHedef.sahipID) EQ val(SESSION.kullaniciID)>
     <cfset kendiIcerik=true>
 <cfelse>
@@ -82,14 +79,13 @@
 </cfif>
 
 <cfset hedefAd=hedefTip EQ 'soru' ? 'Soru':hedefTip EQ 'cevap' ? 'Çözüm':hedefTip EQ 'yorum' ? 'Yorum':'Kullanıcı'>
-
 <cfparam name="hata" default="">
 <cfparam name="basari" default="">
 
 <cfif NOT sikayet AND NOT kendiIcerik AND structKeyExists(form,"sikayetGonder")>
     <cfparam name="form.neden" default="">
     <cfparam name="form.aciklama" default="">
-
+    <cfparam name="form.csrf" default="">
     <cfset neden=trim(form.neden)>
     <cfset aciklama=left(trim(form.aciklama),200)>
 
@@ -97,10 +93,12 @@
         SELECT COUNT(*) AS adet
         FROM Sikayet
         WHERE sikayetciID=<cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
-        AND CAST(tarih AS DATE)=CAST(GETDATE() AS DATE)
+        AND tarih>=CAST(GETDATE() AS DATE)
     </cfquery>
 
-    <cfif sebep EQ "">
+    <cfif compare(form.csrf,SESSION.csrf) NEQ 0>
+        <cfset hata="Oturum doğrulaması başarısız.Sayfayı yenileyip tekrar deneyiniz.">
+    <cfelseif sebep EQ "">
         <cfset hata="Lütfen şikayet sebebinizi seçiniz.">
     <cfelseif NOT listFind(sebep,neden)>
         <cfset hata="Geçersiz sebep seçimi.">
@@ -109,58 +107,73 @@
     <cfelse>
         <cftry>
             <cfset tamSebep=left(neden & (len(aciklama) ? "-" & aciklama:""),255)>
-
             <cfquery datasource="DSN">
                 INSERT INTO Sikayet(sikayetciID,hedefTip,hedefID,sebep,durum,tarih)
                 VALUES(
-                    <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">,
-                    <cfqueryparam value="#hedefTip#" cfsqltype="cf_sql_varchar">,
-                    <cfqueryparam value="#hedefID#" cfsqltype="cf_sql_integer">,
-                    <cfqueryparam value="#tamSebep#" cfsqltype="cf_sql_varchar">,
-                    0,
-                    GETDATE()
+                <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#hedefTip#" cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value="#hedefID#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#tamSebep#" cfsqltype="cf_sql_varchar">,
+                0,
+                GETDATE()
                 )
             </cfquery>
 
-            <cfset basari="Şikayetiniz başarıyla alındı,moderatörler tarafından incelenecektir.">
-            <cfset sikayet=true>
+            <cfquery name="qModerator" datasource="DSN">
+                SELECT id
+                FROM Kullanici
+                WHERE rol>=2
+                AND aktiflik=1
+                AND sistemHesap=0
+                AND id <> <cfqueryparam value="#val(SESSION.kullaniciID)#" cfsqltype="cf_sql_integer">
+            </cfquery>
 
+            <cfloop query="qModerator">
+                <cfquery datasource="DSN">
+                    INSERT INTO Bildirim(kullaniciID,islemTipi,mesaj,goruldu,hedefURL,tarih)
+                    VALUES(
+                    <cfqueryparam value="#val(qModerator.id)#" cfsqltype="cf_sql_integer">,
+                    <cfqueryparam value="sikayet" cfsqltype="cf_sql_varchar">,
+                    <cfqueryparam value="Yeni şikayet:#encodeForHTMLAttribute(sebep)#" cfsqltype="cf_sql_varchar">,
+                    0,
+                    <cfqueryparam value="/YKSSite/views/yonetim/panel.cfm" cfsqltype="cf_sql_varchar">,
+                    GETDATE()
+                    )
+                </cfquery>
+            </cfloop>
+            
+            <cfset basari="Şikayetiniz başarıyla gönderildi. Moderatörler tarafından incelenecektir">
+            <cfset sikayet=true>
             <cfcatch type="any">
                 <cfset hata="Şikayetiniz gönderilirken bir hata oluştu.">
             </cfcatch>
         </cftry>
     </cfif>
 </cfif>
-
 <cfoutput>
     <div class="dar dar--genis">
         <section class="kart">
             <div class="kart__baslik">Şikayet Et</div>
-
             <div class="kart__govde">
                 <p class="hedef-kutu">
                     <strong>Şikayet Edilen:</strong> #encodeForHTML(hedefAd)# <span class="veri">###hedefID#</span>
                 </p>
-
                 <cfif len(hata)>
                     <div class="bildirim bildirim--hata" role="alert">#encodeForHTML(hata)#</div>
                 </cfif>
-
                 <cfif len(basari)>
                     <div class="bildirim bildirim--basarili" role="status">#encodeForHTML(basari)#</div>
                 </cfif>
-
                 <cfif kendiIcerik>
-                    <div class="bildirim" role="status">Kendi içeriğinizi şikayet edemezsiniz.</div>
+                    <div class="bildirim" role="status">Kendi içeriğinizi şikayet edemezsiniz</div>
                 <cfelseif sikayet AND NOT len(basari)>
-                    <div class="bildirim" role="status">Bu içeriği daha önce zaten daha önce şikayet ettiniz. Şikayetiniz moderatörler tarafından incelenmektedir.</div>
+                    <div class="bildirim" role="status">Bu içeriği daha önce şikayet ettiniz. Şikayetiniz moderatörler tarafından incelenmektedir</div>
                 </cfif>
-
                 <cfif NOT sikayet AND NOT kendiIcerik>
                     <form method="POST" action="?hedefTip=#encodeForURL(hedefTip)#&hedefID=#hedefID#">
+                        <cfinclude template="/YKSSite/views/includes/csrfAlan.cfm">
                         <div class="alan ust-bosluk">
                             <label for="neden">Şikayet Sebebiniz:</label>
-                            
                             <select class="secim" name="neden" id="neden" required>
                                 <option value="">Sebep Seçiniz:</option>
                                 <cfloop list="#sebep#" index="s">
@@ -168,19 +181,15 @@
                                 </cfloop>
                             </select>
                         </div>
-
                         <div class="alan">
                             <label for="aciklama">Açıklama<span class="sessiz">(isteğe bağlı):</span></label>
-                            <textarea class="girdi" name="aciklama" id="aciklama" rows="3" maxlength="200" placeholder="Eklemek istediğiniz bir şey varsa yazabilirsiniz."></textarea>
-                            <span class="alan__ipucu">En fazla 200 karakter.</span>
+                            <textarea class="girdi" name="aciklama" id="aciklama" rows="3" maxlength="200" placeholder="Eklemek istediğiniz bir şey varsa yazabilirsiniz"></textarea>
+                            <span class="alan__ipucu">En fazla 200 karakter</span>
                         </div>
-
                         <button class="dugme dugme--tehlike dugme--tam" type="submit" name="sikayetGonder" value="1">Şikayeti Gönder</button>
                     </form>
                 </cfif>
-
                 <p class="ayrac-metin">veya</p>
-
                 <p class="sessiz" style="text-align:center"><a class="bag" href="javascript:history.back()">Geri Dön</a></p>
             </div>
         </section>

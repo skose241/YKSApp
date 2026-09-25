@@ -1,12 +1,11 @@
 ﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
-
 <cfif cgi.request_method NEQ "POST">
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfparam name="form.csrf" default="">
 <cfif NOT structKeyExists(SESSION,"csrf") OR compare(form.csrf,SESSION.csrf) NEQ 0>
-	<cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+    <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfif NOT structKeyExists(form,"hedefID") OR NOT isNumeric(form.hedefID) OR val(form.hedefID) LTE 0>
@@ -16,14 +15,12 @@
 <cfset hedefID=val(form.hedefID)>
 <cfset hedefTip=structKeyExists(form,"hedefTip") ? lCase(trim(form.hedefTip)):"cevap">
 <cfset kullaniciID=val(SESSION.kullaniciID)>
-
 <cfif NOT listFind("cevap,yorum",hedefTip)>
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfset geri="/YKSSite/anaSayfa.cfm">
-
-<cfif structKeyExists(form,"geri") AND left(form.geri,9) EQ "/YKSSite/" AND NOT find("//",replace(form.geri,"/YKSSite/","",​"one"))>
+<cfif structKeyExists(form,"geri") AND reFind("^/YKSSite/[A-Za-z0-9_/\.\?=&%\-]*$",form.geri) AND NOT find("//",form.geri) AND NOT find("..",form.geri)>
     <cfset geri=form.geri>
 </cfif>
 
@@ -95,10 +92,10 @@
             <cfquery datasource="DSN">
                 INSERT INTO Begeni(kullaniciID,hedefTip,hedefID,tarih)
                 VALUES(
-                    <cfqueryparam value="#kullaniciID#" cfsqltype="cf_sql_integer">,
-                    <cfqueryparam value="#hedefTip#" cfsqltype="cf_sql_varchar">,
-                    <cfqueryparam value="#hedefID#" cfsqltype="cf_sql_integer">,
-                    GETDATE()
+                <cfqueryparam value="#kullaniciID#" cfsqltype="cf_sql_integer">,
+                <cfqueryparam value="#hedefTip#" cfsqltype="cf_sql_varchar">,
+                <cfqueryparam value="#hedefID#" cfsqltype="cf_sql_integer">,
+                GETDATE()
                 )
             </cfquery>
 
@@ -106,12 +103,12 @@
                 <cfquery datasource="DSN">
                     INSERT INTO Puan(kullaniciID,islemTipi,puanDegeri,referansID,referansTip,eklenmeTarihi)
                     VALUES(
-                        <cfqueryparam value="#qHedef.sahipID#" cfsqltype="cf_sql_integer">,
-                        <cfqueryparam value="cevap_begenildi" cfsqltype="cf_sql_varchar">,
-                        2,
-                        <cfqueryparam value="#hedefID#" cfsqltype="cf_sql_integer">,
-                        <cfqueryparam value="cevap" cfsqltype="cf_sql_varchar">,
-                        GETDATE()
+                    <cfqueryparam value="#qHedef.sahipID#" cfsqltype="cf_sql_integer">,
+                    <cfqueryparam value="cevap_begenildi" cfsqltype="cf_sql_varchar">,
+                    2,
+                    <cfqueryparam value="#hedefID#" cfsqltype="cf_sql_integer">,
+                    <cfqueryparam value="cevap" cfsqltype="cf_sql_varchar">,
+                    GETDATE()
                     )
                 </cfquery>
 
@@ -123,7 +120,7 @@
             </cfif>
         </cfif>
     </cftransaction>
-
+    
     <cfcatch type="any">
         <cfset ai=createObject("component","YKSSite.views.includes.ai")>
         <cfset ai.hataYazma(
@@ -131,7 +128,7 @@
             islem="begeniToggle",
             mesaj=cfcatch.message,
             detay=cfcatch.detail
-        )>
+            )>
     </cfcatch>
 </cftry>
 

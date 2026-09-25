@@ -1,0 +1,1 @@
+<cfoutput><input type="hidden" name="csrf" value="#encodeForHTMLAttribute(SESSION.csrf ?: '')#"></cfoutput>

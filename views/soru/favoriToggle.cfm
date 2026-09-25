@@ -1,12 +1,11 @@
 ﻿<cfinclude template="/YKSSite/views/includes/oturumKontrol.cfm">
-
 <cfif cgi.request_method NEQ "POST">
     <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfparam name="form.csrf" default="">
 <cfif NOT structKeyExists(SESSION,"csrf") OR compare(form.csrf,SESSION.csrf) NEQ 0>
-	<cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
+    <cflocation url="/YKSSite/anaSayfa.cfm" addtoken="false">
 </cfif>
 
 <cfif NOT structKeyExists(form,"soruID") OR NOT isNumeric(form.soruID) OR val(form.soruID) LTE 0>
@@ -15,10 +14,8 @@
 
 <cfset soruID=val(form.soruID)>
 <cfset kullaniciID=val(SESSION.kullaniciID)>
-
 <cfset geri="/YKSSite/anaSayfa.cfm">
-
-<cfif structKeyExists(form,"geri") AND left(form.geri,9) EQ "/YKSSite/">
+<cfif structKeyExists(form,"geri") AND reFind("^/YKSSite/[A-Za-z0-9_/\.\?=&%\-]*$",form.geri) AND NOT find("//",form.geri) AND NOT find("..",form.geri)>
     <cfset geri=form.geri>
 </cfif>
 
@@ -51,9 +48,9 @@
         <cfquery datasource="DSN">
             INSERT INTO Favori(kullaniciID,soruID,eklenmeTarihi)
             VALUES(
-                <cfqueryparam value="#kullaniciID#" cfsqltype="cf_sql_integer">,
-                <cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">,
-                GETDATE()
+            <cfqueryparam value="#kullaniciID#" cfsqltype="cf_sql_integer">,
+            <cfqueryparam value="#soruID#" cfsqltype="cf_sql_integer">,
+            GETDATE()
             )
         </cfquery>
     </cfif>
@@ -65,7 +62,7 @@
             islem="favoriToggle",
             mesaj=cfcatch.message,
             detay=cfcatch.detail
-        )>
+            )>
     </cfcatch>
 </cftry>
 

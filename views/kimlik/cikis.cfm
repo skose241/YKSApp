@@ -13,7 +13,7 @@
         <cfcatch type="any"></cfcatch>
     </cftry>
 
-    <cfcookie name="beniHatirla" value="" expires="now" secure="true">
+    <cfcookie name="beniHatirla" value="" expires="now" httponly="true" secure="true">
     <cfset structClear(SESSION)>
 </cfif>
 
