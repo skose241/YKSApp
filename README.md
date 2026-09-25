@@ -47,17 +47,17 @@ YKS'ye hazırlanan öğrencileri düzenli soru çözmeye teşvik eden; soru payl
 - Progressive Web App desteği: Site telefona uygulama olarak kurulabilir, bağlantı kesildiğinde çevrimdışı sayfası gösterilir.
 
 ## Kullanılan Teknolojiler
- -Programlama Dili: CFML, CFScript 
- -Uygulama Sunucusu : Lucee 7
- -Web Sunucusu: IIS, URL Rewrite
- -Veritabanı: Microsoft SQL Server Express
- -API Key: Google Gemini API
- -Ön Yüz: HTML, CSS, JavaScript
- -Sembol Gösterimi: LaTeX, KaTeX 
- -PWA ve Web App: Manifest, Service Worker
- -Sanal Sunucu: Netinternet SSD VDS III, Windows Server 2022 
- -Ağ ve Güvenlik: Cloudflare
- -Geliştirme araçları: VS Code, SQL Server Management Studio 2022, Postman, Git 
+ - Programlama Dili: CFML, CFScript 
+ - Uygulama Sunucusu : Lucee 7
+ - Web Sunucusu: IIS, URL Rewrite
+ - Veritabanı: Microsoft SQL Server Express
+ - API Key: Google Gemini API
+ - Ön Yüz: HTML, CSS, JavaScript
+ - Sembol Gösterimi: LaTeX, KaTeX 
+ - PWA ve Web App: Manifest, Service Worker
+ - Sanal Sunucu: Netinternet SSD VDS III, Windows Server 2022 
+ - Ağ ve Güvenlik: Cloudflare
+ - Geliştirme araçları: VS Code, SQL Server Management Studio 2022, Postman, Git 
 
 ## Teknik Öne Çıkanlar
 
