@@ -90,7 +90,3 @@ Bu süreçte kazandıklarım:
 ## Gelecek Planları
 
 Bu projede edindiğim deneyimle, sektördeki büyük ölçekli sistemleri inceleyerek kendime bir uzmanlık alanı belirlemek ve o alanda sistem geliştirmeye devam etmek istiyorum.
-
-## İletişim
-
-[Ad Soyad] · [LinkedIn] · [E-posta]
